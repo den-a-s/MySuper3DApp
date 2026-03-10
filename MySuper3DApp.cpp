@@ -174,44 +174,13 @@ struct LogicObject {
   DirectX::XMFLOAT3 velocity{0, 0, 0};
 };
 
-struct VertexPosColor {
-  DirectX::XMFLOAT3 pos;
-  DirectX::XMFLOAT4 color;
-};
-
-struct Mesh {
-  Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
-  Microsoft::WRL::ComPtr<ID3D11Buffer> mIndexBuffer;
-  UINT mStride = sizeof(VertexPosColor);
-  UINT mOffset = 0;
-  UINT mIndexCount = 0;
-  D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
-};
-
-struct Material {
-  Microsoft::WRL::ComPtr<ID3D11VertexShader> mVertexShader;
-  Microsoft::WRL::ComPtr<ID3D11PixelShader> mPixelShader;
-  Microsoft::WRL::ComPtr<ID3D11InputLayout> mInputLayout;
-  Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
-
-  Microsoft::WRL::ComPtr<ID3DBlob> mVertexShaderByteCode;
-  Microsoft::WRL::ComPtr<ID3DBlob> mPixelShaderByteCode;
-};
-
-struct RenderObject {
-  size_t mLogicIndex;
-  std::shared_ptr<Mesh> mMesh;
-  std::shared_ptr<Material> mMaterial;
-};
-
-class Renderer {
- public:
-  Renderer() : mDisplay(DisplayWin32{L"My3DApp", 800, 800}) {}
-
-  void Init() {
+struct Renderer {
+  static Renderer create() {
     // Инициализация того куда мы будем всё писать и начальная настройка
 
-    mAdapter = chooseDXGIAdapters1();
+    Renderer renderer;
+
+    renderer.mAdapter = chooseDXGIAdapters1();
 
     D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};
     UINT featureLevelSize = std::size(featureLevel);
@@ -219,8 +188,9 @@ class Renderer {
     DXGI_SWAP_CHAIN_DESC swapDesc = {
         .BufferDesc =
             {
-                .Width = static_cast<UINT>(mDisplay.getScreenWidth()),
-                .Height = static_cast<UINT>(mDisplay.getScreenHeight()),
+                .Width = static_cast<UINT>(renderer.mDisplay.getScreenWidth()),
+                .Height =
+                    static_cast<UINT>(renderer.mDisplay.getScreenHeight()),
                 .RefreshRate =
                     {
                         .Numerator = 60,
@@ -237,16 +207,17 @@ class Renderer {
             },
         .BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT,
         .BufferCount = 2,
-        .OutputWindow = mDisplay.getHandlerWindow(),
+        .OutputWindow = renderer.mDisplay.getHandlerWindow(),
         .Windowed = true,
         .SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
         .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH};
 
     auto res = D3D11CreateDeviceAndSwapChain(
-        mAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
+        renderer.mAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
         D3D11_CREATE_DEVICE_DEBUG, featureLevel, featureLevelSize,
-        D3D11_SDK_VERSION, &swapDesc, mSwapChain.GetAddressOf(),
-        mDevice.GetAddressOf(), nullptr, mContext.GetAddressOf());
+        D3D11_SDK_VERSION, &swapDesc, renderer.mSwapChain.GetAddressOf(),
+        renderer.mDevice.GetAddressOf(), nullptr,
+        renderer.mContext.GetAddressOf());
 
     if (FAILED(res)) {
       throw std::runtime_error(
@@ -254,21 +225,68 @@ class Renderer {
     }
 
     ID3D11Texture2D* backTex;
-    res = mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backTex));
-    res =
-        mDevice->CreateRenderTargetView(backTex, nullptr, mRTV.GetAddressOf());
+    res = renderer.mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backTex));
+    res = renderer.mDevice->CreateRenderTargetView(
+        backTex, nullptr, renderer.mRTV.GetAddressOf());
+  
+    return renderer;
   }
 
-  std::shared_ptr<Material> createMaterial(const std::wstring& shaderFileName) {
-    auto material = std::make_shared<Material>();
+  void beginFrame(float* clearColor) {
+    mContext->ClearState();
+    mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr);
+    mContext->ClearRenderTargetView(mRTV.Get(), clearColor);
 
+    D3D11_VIEWPORT viewport = {};
+    viewport.Width = static_cast<float>(mDisplay.getScreenWidth());
+    viewport.Height = static_cast<float>(mDisplay.getScreenHeight());
+    viewport.TopLeftX = 0;
+    viewport.TopLeftY = 0;
+    viewport.MinDepth = 0.0;
+    viewport.MaxDepth = 1.0;
+
+    mContext->RSSetViewports(1, &viewport);
+  }
+
+  void endFrame() { mSwapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0); }
+
+  DisplayWin32 mDisplay;
+  Microsoft::WRL::ComPtr<IDXGIAdapter> mAdapter;
+  Microsoft::WRL::ComPtr<ID3D11Device> mDevice;
+  Microsoft::WRL::ComPtr<ID3D11DeviceContext> mContext;
+  Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
+  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
+
+ private:
+  Renderer() : mDisplay(DisplayWin32{L"My3DApp", 800, 800}) {}
+};
+
+struct SquareRenderObj {
+  Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
+  Microsoft::WRL::ComPtr<ID3D11Buffer> mIndexBuffer;
+  UINT mStride = 0;
+  UINT mOffset = 0;
+  UINT mIndexCount = 0;
+  D3D11_PRIMITIVE_TOPOLOGY topology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+  Microsoft::WRL::ComPtr<ID3D11VertexShader> mVertexShader;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader> mPixelShader;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout> mInputLayout;
+  Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
+
+  Microsoft::WRL::ComPtr<ID3DBlob> mVertexShaderByteCode;
+  Microsoft::WRL::ComPtr<ID3DBlob> mPixelShaderByteCode;
+
+  static SquareRenderObj create(Renderer& r,
+                                const std::wstring& shaderFileName) {
+    SquareRenderObj obj;
     // Создаём буферы для шейдеров
     ID3DBlob* errorVertexCode = nullptr;
     auto res = D3DCompileFromFile(
         /* L"./Shaders/MyVeryFirstShader.hlsl"*/ shaderFileName.c_str(),
         nullptr /*macros*/, nullptr /*include*/, "VSMain", "vs_5_0",
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
-        material->mVertexShaderByteCode.GetAddressOf(), &errorVertexCode);
+        obj.mVertexShaderByteCode.GetAddressOf(), &errorVertexCode);
 
     if (FAILED(res)) {
       // If the shader failed to compile it should have written something to the
@@ -281,7 +299,7 @@ class Renderer {
       // If there was  nothing in the error message then it simply could not
       // find the shader file itself.
       else {
-        MessageBox(mDisplay.getHandlerWindow(), L"MyVeryFirstShader.hlsl",
+        MessageBox(r.mDisplay.getHandlerWindow(), L"MyVeryFirstShader.hlsl",
                    L"Missing Shader File", MB_OK);
       }
 
@@ -289,24 +307,21 @@ class Renderer {
     }
 
     D3D_SHADER_MACRO Shader_Macros[] = {
-        "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)",
-        nullptr, nullptr};
+        "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
 
     ID3DBlob* errorPixelCode;
     res = D3DCompileFromFile(
         shaderFileName.c_str(), Shader_Macros /*macros*/, nullptr /*include*/,
         "PSMain", "ps_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
-        material->mPixelShaderByteCode.GetAddressOf(), &errorPixelCode);
+        obj.mPixelShaderByteCode.GetAddressOf(), &errorPixelCode);
 
-    mDevice->CreateVertexShader(
-        material->mVertexShaderByteCode->GetBufferPointer(),
-        material->mVertexShaderByteCode->GetBufferSize(), nullptr,
-        material->mVertexShader.GetAddressOf());
+    r.mDevice->CreateVertexShader(obj.mVertexShaderByteCode->GetBufferPointer(),
+                                  obj.mVertexShaderByteCode->GetBufferSize(),
+                                  nullptr, obj.mVertexShader.GetAddressOf());
 
-    mDevice->CreatePixelShader(
-        material->mPixelShaderByteCode->GetBufferPointer(),
-        material->mPixelShaderByteCode->GetBufferSize(), nullptr,
-        material->mPixelShader.GetAddressOf());
+    r.mDevice->CreatePixelShader(obj.mPixelShaderByteCode->GetBufferPointer(),
+                                 obj.mPixelShaderByteCode->GetBufferSize(),
+                                 nullptr, obj.mPixelShader.GetAddressOf());
 
     D3D11_INPUT_ELEMENT_DESC inputElements[] = {
         D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,
@@ -314,29 +329,23 @@ class Renderer {
         D3D11_INPUT_ELEMENT_DESC{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
                                  D3D11_APPEND_ALIGNED_ELEMENT,
                                  D3D11_INPUT_PER_VERTEX_DATA, 0}};
-    mDevice->CreateInputLayout(
-        inputElements, 2, material->mVertexShaderByteCode->GetBufferPointer(),
-        material->mVertexShaderByteCode->GetBufferSize(),
-        material->mInputLayout.GetAddressOf());
+    r.mDevice->CreateInputLayout(inputElements, 2,
+                                 obj.mVertexShaderByteCode->GetBufferPointer(),
+                                 obj.mVertexShaderByteCode->GetBufferSize(),
+                                 obj.mInputLayout.GetAddressOf());
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
     rastDesc.CullMode = D3D11_CULL_NONE;
     rastDesc.FillMode = D3D11_FILL_SOLID;
 
-    res = mDevice->CreateRasterizerState(
-        &rastDesc, material->mRasterizerState.GetAddressOf());
-
-    return material;
-  }
-
-  std::shared_ptr<Mesh> createMesh() {
-    auto mesh = std::make_shared<Mesh>();
+    res = r.mDevice->CreateRasterizerState(&rastDesc,
+                                           obj.mRasterizerState.GetAddressOf());
 
     DirectX::XMFLOAT4 points[8] = {
-        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f), //?
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),  // Точка
+        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),  // Цвет
         DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f), //?
+        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
         DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
         DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
         DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
@@ -356,104 +365,245 @@ class Renderer {
     vertexData.SysMemPitch = 0;
     vertexData.SysMemSlicePitch = 0;
 
-    mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
-                          mesh->mVertexBuffer.GetAddressOf());
+    r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
+                            obj.mVertexBuffer.GetAddressOf());
 
     int indeces[] = {0, 1, 2, 1, 0, 3};
-    mesh->mIndexCount = std::size(indeces);
+    obj.mIndexCount = std::size(indeces);
     D3D11_BUFFER_DESC indexBufDesc = {};
     indexBufDesc.Usage = D3D11_USAGE_IMMUTABLE;
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     indexBufDesc.CPUAccessFlags = 0;
     indexBufDesc.MiscFlags = 0;
     indexBufDesc.StructureByteStride = 0;
-    indexBufDesc.ByteWidth = sizeof(int) * mesh->mIndexCount;
+    indexBufDesc.ByteWidth = sizeof(int) * obj.mIndexCount;
 
     D3D11_SUBRESOURCE_DATA indexData = {};
     indexData.pSysMem = indeces;
     indexData.SysMemPitch = 0;
     indexData.SysMemSlicePitch = 0;
 
-    mDevice->CreateBuffer(&indexBufDesc, &indexData,
-                          mesh->mIndexBuffer.GetAddressOf());
+    r.mDevice->CreateBuffer(&indexBufDesc, &indexData,
+                            obj.mIndexBuffer.GetAddressOf());
 
-    mesh->mStride = 32;
-    mesh->mOffset = 0;
+    obj.mStride = 32;
+    obj.mOffset = 0;
 
-    return mesh;
+    return obj;
   }
-
-  void BeginFrame(float* clearColor) {
-    mContext->ClearState();
-    mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr);
-    mContext->ClearRenderTargetView(mRTV.Get(), clearColor);
-  }
-
-  void DrawMesh(double alpha, std::shared_ptr<Mesh> mesh,
-                std::shared_ptr<Material> material) {
-    mContext->RSSetState(material->mRasterizerState.Get());
-
-    D3D11_VIEWPORT viewport = {};
-    viewport.Width = static_cast<float>(mDisplay.getScreenWidth());
-    viewport.Height = static_cast<float>(mDisplay.getScreenHeight());
-    viewport.TopLeftX = 0;
-    viewport.TopLeftY = 0;
-    viewport.MinDepth = 0.0;
-    viewport.MaxDepth = 1.0;
-
-    mContext->RSSetViewports(1, &viewport);
-
-    mContext->IASetInputLayout(material->mInputLayout.Get());
-    mContext->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    mContext->IASetIndexBuffer(mesh->mIndexBuffer.Get(), DXGI_FORMAT_R32_UINT,
-                               0);
-    ID3D11Buffer* vbs[] = {mesh->mVertexBuffer.Get()};
-    UINT strides[] = {mesh->mStride};
-    UINT offsets[] = {mesh->mOffset};
-
-    mContext->IASetVertexBuffers(0, 1, vbs, strides, offsets);
-    mContext->VSSetShader(material->mVertexShader.Get(), nullptr, 0);
-    mContext->PSSetShader(material->mPixelShader.Get(), nullptr, 0);
-
-    mContext->DrawIndexed(mesh->mIndexCount, 0, 0);
-  }
-
-  void EndFrame() { mSwapChain->Present(1, /*DXGI_PRESENT_DO_NOT_WAIT*/ 0); }
-
- private:
-  float topLeftX = 0.0;
-  DisplayWin32 mDisplay;
-  Microsoft::WRL::ComPtr<IDXGIAdapter> mAdapter;
-  Microsoft::WRL::ComPtr<ID3D11Device> mDevice;
-  Microsoft::WRL::ComPtr<ID3D11DeviceContext> mContext;
-  Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
-  Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
 };
+
+void draw(const SquareRenderObj& obj, double alpha, Renderer& r) {
+  r.mContext->RSSetState(obj.mRasterizerState.Get());
+
+  r.mContext->IASetInputLayout(obj.mInputLayout.Get());
+  r.mContext->IASetPrimitiveTopology(obj.topology);
+  r.mContext->IASetIndexBuffer(obj.mIndexBuffer.Get(), DXGI_FORMAT_R32_UINT,
+                               0);
+  ID3D11Buffer* vbs[] = {obj.mVertexBuffer.Get()};
+  UINT strides[] = {obj.mStride};
+  UINT offsets[] = {obj.mOffset};
+
+  r.mContext->IASetVertexBuffers(0, 1, vbs, strides, offsets);
+  r.mContext->VSSetShader(obj.mVertexShader.Get(), nullptr, 0);
+  r.mContext->PSSetShader(obj.mPixelShader.Get(), nullptr, 0);
+
+  r.mContext->DrawIndexed(obj.mIndexCount, 0, 0);
+}
+
+struct TriangleRenderObj {
+  Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
+  UINT mStride = 0;
+  UINT mOffset = 0;
+  UINT mVertexCount = 0;
+  D3D11_PRIMITIVE_TOPOLOGY mTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+  Microsoft::WRL::ComPtr<ID3D11VertexShader> mVertexShader;
+  Microsoft::WRL::ComPtr<ID3D11PixelShader> mPixelShader;
+  Microsoft::WRL::ComPtr<ID3D11InputLayout> mInputLayout;
+  Microsoft::WRL::ComPtr<ID3D11RasterizerState> mRasterizerState;
+
+  Microsoft::WRL::ComPtr<ID3DBlob> mVertexShaderByteCode;
+  Microsoft::WRL::ComPtr<ID3DBlob> mPixelShaderByteCode;
+
+  static TriangleRenderObj create(Renderer& r,
+                                const std::wstring& shaderFileName) {
+    TriangleRenderObj obj;
+    // Создаём буферы для шейдеров
+    ID3DBlob* errorVertexCode = nullptr;
+    auto res = D3DCompileFromFile(
+        /* L"./Shaders/MyVeryFirstShader.hlsl"*/ shaderFileName.c_str(),
+        nullptr /*macros*/, nullptr /*include*/, "VSMain", "vs_5_0",
+        D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
+        obj.mVertexShaderByteCode.GetAddressOf(), &errorVertexCode);
+
+    if (FAILED(res)) {
+      // If the shader failed to compile it should have written something to the
+      // error message.
+      if (errorVertexCode) {
+        char* compileErrors = (char*)(errorVertexCode->GetBufferPointer());
+
+        std::cout << compileErrors << std::endl;
+      }
+      // If there was  nothing in the error message then it simply could not
+      // find the shader file itself.
+      else {
+        MessageBox(r.mDisplay.getHandlerWindow(), L"MyVeryFirstShader.hlsl",
+                   L"Missing Shader File", MB_OK);
+      }
+
+      throw std::runtime_error("FAILED Compile shader");
+    }
+
+    D3D_SHADER_MACRO Shader_Macros[] = {
+        "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
+
+    ID3DBlob* errorPixelCode;
+    res = D3DCompileFromFile(
+        shaderFileName.c_str(), Shader_Macros /*macros*/, nullptr /*include*/,
+        "PSMain", "ps_5_0", D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,
+        obj.mPixelShaderByteCode.GetAddressOf(), &errorPixelCode);
+
+    r.mDevice->CreateVertexShader(obj.mVertexShaderByteCode->GetBufferPointer(),
+                                  obj.mVertexShaderByteCode->GetBufferSize(),
+                                  nullptr, obj.mVertexShader.GetAddressOf());
+
+    r.mDevice->CreatePixelShader(obj.mPixelShaderByteCode->GetBufferPointer(),
+                                 obj.mPixelShaderByteCode->GetBufferSize(),
+                                 nullptr, obj.mPixelShader.GetAddressOf());
+
+    D3D11_INPUT_ELEMENT_DESC inputElements[] = {
+        D3D11_INPUT_ELEMENT_DESC{"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT,
+                                 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0},
+        D3D11_INPUT_ELEMENT_DESC{"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
+                                 D3D11_APPEND_ALIGNED_ELEMENT,
+                                 D3D11_INPUT_PER_VERTEX_DATA, 0}};
+    r.mDevice->CreateInputLayout(inputElements, 2,
+                                 obj.mVertexShaderByteCode->GetBufferPointer(),
+                                 obj.mVertexShaderByteCode->GetBufferSize(),
+                                 obj.mInputLayout.GetAddressOf());
+
+    CD3D11_RASTERIZER_DESC rastDesc = {};
+    rastDesc.CullMode = D3D11_CULL_NONE;
+    rastDesc.FillMode = D3D11_FILL_SOLID;
+
+    res = r.mDevice->CreateRasterizerState(&rastDesc,
+                                           obj.mRasterizerState.GetAddressOf());
+
+    auto color = DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+
+    DirectX::XMFLOAT4 points[] = {
+        DirectX::XMFLOAT4(1.0f, 0.9f, 0.5f, 1.0f),  // Точка
+        color,                                      // Цвет
+        DirectX::XMFLOAT4(-0.5f, 1.0f, 0.5f, 1.0f),
+        color,
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
+        color,
+    };
+
+    obj.mVertexCount = std::size(points) / 2;
+
+    D3D11_BUFFER_DESC vertexBufDesc = {};
+    vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
+    vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+    vertexBufDesc.CPUAccessFlags = 0;
+    vertexBufDesc.MiscFlags = 0;
+    vertexBufDesc.StructureByteStride = 0;
+    vertexBufDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) * std::size(points);
+
+    D3D11_SUBRESOURCE_DATA vertexData = {};
+    vertexData.pSysMem = points;
+    vertexData.SysMemPitch = 0;
+    vertexData.SysMemSlicePitch = 0;
+
+    r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
+                            obj.mVertexBuffer.GetAddressOf());
+
+    obj.mStride = sizeof(DirectX::XMFLOAT4) * 2;
+    obj.mOffset = 0;
+
+    return obj;
+  }
+};
+
+void draw(const TriangleRenderObj& obj, double alpha, Renderer& r) {
+  r.mContext->RSSetState(obj.mRasterizerState.Get());
+
+  r.mContext->IASetInputLayout(obj.mInputLayout.Get());
+  r.mContext->IASetPrimitiveTopology(obj.mTopology);
+  ID3D11Buffer* vbs[] = {obj.mVertexBuffer.Get()};
+  UINT strides[] = {obj.mStride};
+  UINT offsets[] = {obj.mOffset};
+
+  r.mContext->IASetVertexBuffers(0, 1, vbs, strides, offsets);
+  r.mContext->VSSetShader(obj.mVertexShader.Get(), nullptr, 0);
+  r.mContext->PSSetShader(obj.mPixelShader.Get(), nullptr, 0);
+
+  r.mContext->Draw(obj.mVertexCount, 0);
+}
+
+class Renderable {
+  struct IRenderable {
+    virtual ~IRenderable() = default;
+    virtual std::unique_ptr<IRenderable> copy_() const = 0;
+    virtual void draw_(double delta, Renderer& r) const = 0;
+  };
+
+  template <typename T>
+  struct RenderableObject final : IRenderable {
+    T data_;
+    RenderableObject(T x) : data_(std::move(x)) {}
+    std::unique_ptr<IRenderable> copy_() const override {
+      return std::make_unique<RenderableObject>(*this);
+    }
+    void draw_(double delta, Renderer& r) const override;
+  };
+
+  std::unique_ptr<IRenderable> self_;
+
+ public:
+  template <typename T>
+  Renderable(T x)
+      : self_(std::make_unique<RenderableObject<T>>(std::move(x))) {}
+
+  // copy ctor, move ctor and assignment
+  Renderable(const Renderable& x) : self_(x.self_->copy_()) {}
+  Renderable(Renderable&& x) noexcept = default;
+  Renderable& operator=(Renderable x) noexcept {
+    self_ = std::move(x.self_);
+    return *this;
+  }
+
+  friend void draw(const Renderable& x, double delta, Renderer& r) {
+    x.self_->draw_(delta, r);
+  }
+};
+
+template <typename T>
+void Renderable::RenderableObject<T>::draw_(double delta, Renderer& r) const {
+  ::draw(data_, delta, r);
+}
 
 class Game {
  public:
-  Game() { Init(); }
+  Game() : mRenderer(Renderer::create()) { init(); }
 
-  void Init() {
-    mRenderer.Init();
-    mMaterials.push_back(
-        mRenderer.createMaterial(L"./Shaders/MyVeryFirstShader.hlsl"));
-    mMeshes.push_back(mRenderer.createMesh());
+  void init() {
+    mRenderObjects.push_back(SquareRenderObj::create(
+        mRenderer, L"./Shaders/MyVeryFirstShader.hlsl"));
 
-    RenderObject ro;
-    ro.mLogicIndex = 0;
-    ro.mMesh = mMeshes[0];
-    ro.mMaterial = mMaterials[0];
-    mRenderObjects.push_back(ro);
+    mRenderObjects.push_back(TriangleRenderObj::create(
+        mRenderer, L"./Shaders/MyVeryFirstShader.hlsl"));
   }
 
-  void Run() {
+  void run() {
     std::chrono::time_point<std::chrono::steady_clock> PrevTime =
         std::chrono::steady_clock::now();
     unsigned int frameCount = 0;
 
     while (!mIsExitRequested) {
-      HandleInput();
+      
+      handleInput();
 
       auto curTime = std::chrono::steady_clock::now();
       float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(
@@ -470,10 +620,9 @@ class Game {
 
         mTotalTime -= 1.0f;
 
-        // TODO Вернуть установку FPS в окно
-        // WCHAR text[256];
-        // swprintf_s(text, TEXT("FPS: %f"), fps);
-        // SetWindowText(mDisplay.getHandlerWindow(), text);
+         WCHAR text[256];
+         swprintf_s(text, TEXT("FPS: %f"), fps);
+         SetWindowText(mRenderer.mDisplay.getHandlerWindow(), text);
 
         frameCount = 0;
       }
@@ -484,7 +633,7 @@ class Game {
   }
 
  private:
-  void HandleInput() {
+  void handleInput() {
     MSG msg = {};
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
       TranslateMessage(&msg);
@@ -495,17 +644,17 @@ class Game {
       mIsExitRequested = true;
     }
   }
-  void Render(double alpha) {
 
-    float color[]{0.0 /*totalTime*/, 0.0, 0.0, 1.0};
-    mRenderer.BeginFrame(color);
+  void Render(double alpha) {
+    float color[]{0.0, 0.0, 0.0, 1.0};
+    mRenderer.beginFrame(color);
 
     for (const auto& obj : mRenderObjects) {
       // TODO Добавить объекты игровой логики
-      mRenderer.DrawMesh(alpha, obj.mMesh, obj.mMaterial);
+      draw(obj, alpha, mRenderer);
     }
 
-    mRenderer.EndFrame();
+    mRenderer.endFrame();
   }
 
   float mTotalTime;
@@ -513,12 +662,10 @@ class Game {
 
   Renderer mRenderer;
 
-  std::vector<RenderObject> mRenderObjects;
-  std::vector<std::shared_ptr<Material>> mMaterials;
-  std::vector<std::shared_ptr<Mesh>> mMeshes;
+  std::vector<Renderable> mRenderObjects;
 };
 
 int main() {
   Game game;
-  game.Run();
+  game.run();
 }
