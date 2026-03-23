@@ -1,30 +1,31 @@
-struct VS_IN
+cbuffer ConstantBuffer : register(b0)
 {
-	float4 pos : POSITION0;
-	float4 col : COLOR0;
+    matrix world;
+    matrix view;
+    matrix projection;
 };
 
-struct PS_IN
+struct VSInput
 {
-	float4 pos : SV_POSITION;
- 	float4 col : COLOR;
+    float4 position : POSITION;
+    float4 color : COLOR;
 };
 
-PS_IN VSMain( VS_IN input )
+struct VSOutput
 {
-	PS_IN output = (PS_IN)0;
-	
-	output.pos = input.pos;
-	output.col = input.col;
-	
-	return output;
+    float4 position : SV_POSITION;
+    float4 color : COLOR;
+};
+
+VSOutput VSMain(VSInput input)
+{
+    VSOutput output;
+    output.position = mul(mul(mul(input.position, world), view), projection);
+    output.color = input.color;
+    return output;
 }
 
-float4 PSMain( PS_IN input ) : SV_Target
+float4 PSMain(VSOutput input) : SV_TARGET
 {
-	float4 col = input.col;
-#ifdef TEST
-	if (input.pos.x > 400) col = TCOLOR;
-#endif
-	return col;
+    return input.color;
 }
