@@ -68,8 +68,7 @@ void Game::handleInput() {
     return;
   }
 
-  // Ћева€ ракетка (W/S)
-  if (GetAsyncKeyState('W') & 0x8000) {
+    if (GetAsyncKeyState('W') & 0x8000) {
     mLeftPaddlePos.y += mPaddleSpeed * 0.016f;
   }
   if (GetAsyncKeyState('S') & 0x8000) {
@@ -77,8 +76,7 @@ void Game::handleInput() {
   }
   mLeftPaddlePos.y = std::clamp(mLeftPaddlePos.y, -3.5f, 3.5f);
 
-  // ѕрава€ ракетка (стрелки)
-  if (GetAsyncKeyState(VK_UP) & 0x8000) {
+    if (GetAsyncKeyState(VK_UP) & 0x8000) {
     mRightPaddlePos.y += mPaddleSpeed * 0.016f;
   }
   if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
@@ -179,8 +177,13 @@ void Game::Render(float deltaTime) {
         DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
     float aspect = static_cast<float>(mRenderer.mDisplay->getScreenWidth()) /
                    mRenderer.mDisplay->getScreenHeight();
-    DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(
-        DirectX::XMConvertToRadians(45.0f), aspect, 0.1f, 100.0f);
+    DirectX::XMMATRIX projection =
+        DirectX::XMMatrixOrthographicOffCenterLH(-5.0f * aspect,  // лево
+                                                 5.0f * aspect,   // право
+                                                 -4.0f,           // низ
+                                                 4.0f,            // верх
+                                                 0.1f,     // ближн€€ плоскость
+                                                 100.0f);  // дальн€€ плоскость
 
     DirectX::XMMATRIX worldLeft =
         DirectX::XMMatrixScaling(mPaddleScale.x, mPaddleScale.y,
