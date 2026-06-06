@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Camera.h"
 #include "DisplayWin32.h"
 #include <d3d11.h>
 #include <dxgi.h>
@@ -15,6 +16,11 @@ public:
     void beginFrame(float* clearColor);
     void endFrame();
 
+    void initCamera(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR focus, DirectX::FXMVECTOR up,
+                    float orthoHalfWidth, float orthoHalfHeight, float nearZ, float farZ);
+
+    Camera& getCamera() { return mCamera; }
+
     std::shared_ptr<DisplayWin32> mDisplay;
     Microsoft::WRL::ComPtr<IDXGIAdapter> mAdapter;
     Microsoft::WRL::ComPtr<ID3D11Device> mDevice;
@@ -24,6 +30,8 @@ public:
 
 private:
     Renderer() = default;
+
+    Camera mCamera;
 };
 
 Microsoft::WRL::ComPtr<IDXGIFactory> mustCreateDXGIFactory();

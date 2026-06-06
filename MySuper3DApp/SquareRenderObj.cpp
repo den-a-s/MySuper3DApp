@@ -104,6 +104,15 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     return obj;
 }
 
+void draw(const SquareRenderObj& obj, const DirectX::XMFLOAT3& position,
+          const DirectX::XMFLOAT3& scale, Renderer& r) {
+    DirectX::XMMATRIX world =
+        DirectX::XMMatrixScaling(scale.x, scale.y, scale.z) *
+        DirectX::XMMatrixTranslation(position.x, position.y, position.z);
+    auto& camera = r.getCamera();
+    draw(obj, world, camera.getView(), camera.getProjection(), r);
+}
+
 void draw(const SquareRenderObj& obj, const DirectX::XMMATRIX& world,
           const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection,
           Renderer& r) {

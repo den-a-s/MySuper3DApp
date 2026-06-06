@@ -28,3 +28,6 @@ struct SquareRenderObj {
 void draw(const SquareRenderObj& obj, const DirectX::XMMATRIX& world,
           const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection,
           Renderer& r);
+
+void draw(const SquareRenderObj& obj, const DirectX::XMFLOAT3& position,
+          const DirectX::XMFLOAT3& scale, Renderer& r);

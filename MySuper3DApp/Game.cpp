@@ -55,6 +55,12 @@ void Game::init() {
     mScoreLeft = 0;
     mScoreRight = 0;
 
+    mRenderer.initCamera(
+        DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f),
+        DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
+        DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f),
+        5.0f, 4.0f, 0.1f, 100.0f);
+
     updateWindowTitle();
 }
 
@@ -181,38 +187,9 @@ void Game::Render(float deltaTime) {
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     mRenderer.beginFrame(clearColor);
 
-    DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
-        DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f),
-        DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-        DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-    float aspect = static_cast<float>(mRenderer.mDisplay->getScreenWidth()) /
-                   mRenderer.mDisplay->getScreenHeight();
-    DirectX::XMMATRIX projection =
-        DirectX::XMMatrixOrthographicOffCenterLH(-5.0f * aspect,  // ����
-                                                 5.0f * aspect,   // �����
-                                                 -4.0f,           // ���
-                                                 4.0f,            // ����
-                                                 0.1f,     // ������� ���������
-                                                 100.0f);  // ������� ���������
-
-    DirectX::XMMATRIX worldLeft =
-        DirectX::XMMatrixScaling(mPaddleScale.x, mPaddleScale.y,
-                                 mPaddleScale.z) *
-        DirectX::XMMatrixTranslation(mLeftPaddlePos.x, mLeftPaddlePos.y,
-                                     mLeftPaddlePos.z);
-    draw(mLeftPaddle, worldLeft, view, projection, mRenderer);
-
-    DirectX::XMMATRIX worldRight =
-        DirectX::XMMatrixScaling(mPaddleScale.x, mPaddleScale.y,
-                                 mPaddleScale.z) *
-        DirectX::XMMatrixTranslation(mRightPaddlePos.x, mRightPaddlePos.y,
-                                     mRightPaddlePos.z);
-    draw(mRightPaddle, worldRight, view, projection, mRenderer);
-
-    DirectX::XMMATRIX worldBall =
-        DirectX::XMMatrixScaling(mBallScale.x, mBallScale.y, mBallScale.z) *
-        DirectX::XMMatrixTranslation(mBallPos.x, mBallPos.y, mBallPos.z);
-    draw(mBall, worldBall, view, projection, mRenderer);
+    draw(mLeftPaddle, mLeftPaddlePos, mPaddleScale, mRenderer);
+    draw(mRightPaddle, mRightPaddlePos, mPaddleScale, mRenderer);
+    draw(mBall, mBallPos, mBallScale, mRenderer);
 
     mRenderer.endFrame();
 }

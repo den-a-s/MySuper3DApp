@@ -138,6 +138,13 @@ Renderer Renderer::create() {
     return renderer;
 }
 
+void Renderer::initCamera(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR focus, DirectX::FXMVECTOR up,
+                          float orthoHalfWidth, float orthoHalfHeight, float nearZ, float farZ) {
+    float aspect = static_cast<float>(mDisplay->getScreenWidth()) /
+                   mDisplay->getScreenHeight();
+    mCamera.init(eye, focus, up, orthoHalfWidth, orthoHalfHeight, nearZ, farZ, aspect);
+}
+
 void Renderer::beginFrame(float* clearColor) {
     mContext->ClearState();
     mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr);
