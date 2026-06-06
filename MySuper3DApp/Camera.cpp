@@ -38,10 +38,16 @@ void Camera::setMode(CameraMode mode) {
     mMode = mode;
 }
 
-void Camera::cycleProj() {
-    int next = (static_cast<int>(mProjMode) + 1) % 4;
-    mProjMode = static_cast<ProjMode>(next);
+void Camera::setProjMode(ProjMode mode) {
+    mProjMode = mode;
     recalculateProjection();
+}
+
+void Camera::setFov(float degrees) {
+    mFovDegrees = degrees;
+    mFovAngleY = DirectX::XMConvertToRadians(degrees);
+    if (mProjMode == ProjMode::Persp)
+        recalculateProjection();
 }
 
 void Camera::rotateFPS(float dYaw, float dPitch) {
@@ -87,16 +93,8 @@ void Camera::setAspect(float aspect) {
 
 void Camera::recalculateProjection() {
     switch (mProjMode) {
-    case ProjMode::Persp60:
-        mFovAngleY = DirectX::XMConvertToRadians(60.0f);
-        mProjection = DirectX::XMMatrixPerspectiveFovLH(mFovAngleY, mAspect, mNearZ, mFarZ);
-        break;
-    case ProjMode::Persp90:
-        mFovAngleY = DirectX::XMConvertToRadians(90.0f);
-        mProjection = DirectX::XMMatrixPerspectiveFovLH(mFovAngleY, mAspect, mNearZ, mFarZ);
-        break;
-    case ProjMode::Persp30:
-        mFovAngleY = DirectX::XMConvertToRadians(30.0f);
+    case ProjMode::Persp:
+        mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
         mProjection = DirectX::XMMatrixPerspectiveFovLH(mFovAngleY, mAspect, mNearZ, mFarZ);
         break;
     case ProjMode::Ortho:

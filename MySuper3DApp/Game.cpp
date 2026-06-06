@@ -1,29 +1,10 @@
 #include "Game.h"
+#include "imgui.h"
+#include "imgui_impl_win32.h"
+#include "imgui_impl_dx11.h"
 #include <windows.h>
 #include <cstdio>
 #include <algorithm>
-
-static PlanetData makePlanet(float orbitRadius, float orbitSpeed, float selfRotSpeed, float size,
-                              DirectX::XMFLOAT4 color,
-                              float moonOrbitRadius, float moonOrbitSpeed, float moonSelfRotSpeed, float moonSize,
-                              DirectX::XMFLOAT4 moonColor) {
-    PlanetData p;
-    p.orbitRadius = orbitRadius;
-    p.orbitSpeed = orbitSpeed;
-    p.angle = 0.0f;
-    p.rotationSpeed = selfRotSpeed;
-    p.rotationAngle = 0.0f;
-    p.size = size;
-    p.color = color;
-    p.moon.orbitRadius = moonOrbitRadius;
-    p.moon.orbitSpeed = moonOrbitSpeed;
-    p.moon.angle = 0.0f;
-    p.moon.rotationSpeed = moonSelfRotSpeed;
-    p.moon.rotationAngle = 0.0f;
-    p.moon.size = moonSize;
-    p.moon.color = moonColor;
-    return p;
-}
 
 Game::Game() : mRenderer(Renderer::create()) {
     init();
@@ -61,15 +42,168 @@ void Game::init() {
     };
 
     auto defs = std::vector<PlanetDef>{
-        {makePlanet(1.8f,  0.80f, 2.5f, 0.12f, DirectX::XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f),   0.25f, 1.5f, 5.0f, 0.04f, DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)),  true,  false},
-        {makePlanet(2.6f,  0.55f, 1.8f, 0.18f, DirectX::XMFLOAT4(0.9f, 0.8f, 0.3f, 1.0f),   0.30f, 1.2f, 4.5f, 0.05f, DirectX::XMFLOAT4(0.7f, 0.6f, 0.2f, 1.0f)),  false, true},
-        {makePlanet(3.5f,  0.40f, 3.0f, 0.22f, DirectX::XMFLOAT4(0.2f, 0.5f, 0.9f, 1.0f),   0.35f, 2.0f, 6.0f, 0.06f, DirectX::XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f)),  true,  true},
-        {makePlanet(4.4f,  0.35f, 2.2f, 0.16f, DirectX::XMFLOAT4(0.8f, 0.3f, 0.1f, 1.0f),   0.28f, 1.8f, 5.5f, 0.04f, DirectX::XMFLOAT4(0.5f, 0.3f, 0.1f, 1.0f)),  false, false},
-        {makePlanet(5.8f,  0.20f, 4.0f, 0.50f, DirectX::XMFLOAT4(0.8f, 0.6f, 0.2f, 1.0f),   0.55f, 1.0f, 6.5f, 0.10f, DirectX::XMFLOAT4(0.6f, 0.4f, 0.1f, 1.0f)),  true,  false},
-        {makePlanet(7.5f,  0.15f, 3.5f, 0.40f, DirectX::XMFLOAT4(0.9f, 0.7f, 0.1f, 1.0f),   0.50f, 0.8f, 5.0f, 0.09f, DirectX::XMFLOAT4(0.7f, 0.5f, 0.1f, 1.0f)),  false, true},
-        {makePlanet(9.0f,  0.10f, 2.8f, 0.28f, DirectX::XMFLOAT4(0.3f, 0.8f, 0.8f, 1.0f),   0.40f, 0.7f, 6.0f, 0.06f, DirectX::XMFLOAT4(0.2f, 0.6f, 0.6f, 1.0f)),  true,  true},
-        {makePlanet(10.5f, 0.07f, 2.0f, 0.26f, DirectX::XMFLOAT4(0.1f, 0.2f, 0.8f, 1.0f),   0.38f, 0.6f, 5.0f, 0.05f, DirectX::XMFLOAT4(0.1f, 0.3f, 0.6f, 1.0f)),  false, false},
-        {makePlanet(12.0f, 0.05f, 1.5f, 0.10f, DirectX::XMFLOAT4(0.8f, 0.7f, 0.5f, 1.0f),   0.20f, 0.5f, 4.0f, 0.03f, DirectX::XMFLOAT4(0.6f, 0.5f, 0.3f, 1.0f)),  true,  false},
+        {
+            .data = {
+                .orbitRadius = 1.8f,
+                .orbitSpeed = 0.80f,
+                .rotationSpeed = 2.5f,
+                .size = 0.36f,
+                .color = {0.7f, 0.7f, 0.7f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.25f,
+                    .orbitSpeed = 1.5f,
+                    .rotationSpeed = 5.0f,
+                    .size = 0.12f,
+                    .color = {0.5f, 0.5f, 0.5f, 1.0f},
+                },
+            },
+            .planetIsBox = true,
+            .moonIsBox = false,
+        },
+        {
+            .data = {
+                .orbitRadius = 2.6f,
+                .orbitSpeed = 0.55f,
+                .rotationSpeed = 1.8f,
+                .size = 0.30f,
+                .color = {0.9f, 0.8f, 0.3f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.34f,
+                    .orbitSpeed = 1.2f,
+                    .rotationSpeed = 4.5f,
+                    .size = 0.15f,
+                    .color = {0.7f, 0.6f, 0.2f, 1.0f},
+                },
+            },
+            .planetIsBox = false,
+            .moonIsBox = true,
+        },
+        {
+            .data = {
+                .orbitRadius = 3.5f,
+                .orbitSpeed = 0.40f,
+                .rotationSpeed = 3.0f,
+                .size = 0.22f,
+                .color = {0.2f, 0.5f, 0.9f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.35f,
+                    .orbitSpeed = 2.0f,
+                    .rotationSpeed = 6.0f,
+                    .size = 0.18f,
+                    .color = {0.4f, 0.4f, 0.4f, 1.0f},
+                },
+            },
+            .planetIsBox = true,
+            .moonIsBox = true,
+        },
+        {
+            .data = {
+                .orbitRadius = 4.4f,
+                .orbitSpeed = 0.35f,
+                .rotationSpeed = 2.2f,
+                .size = 0.48f,
+                .color = {0.8f, 0.3f, 0.1f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.28f,
+                    .orbitSpeed = 1.8f,
+                    .rotationSpeed = 5.5f,
+                    .size = 0.12f,
+                    .color = {0.5f, 0.3f, 0.1f, 1.0f},
+                },
+            },
+            .planetIsBox = false,
+            .moonIsBox = false,
+        },
+        {
+            .data = {
+                .orbitRadius = 5.8f,
+                .orbitSpeed = 0.20f,
+                .rotationSpeed = 4.0f,
+                .size = 0.50f,
+                .color = {0.8f, 0.6f, 0.2f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.55f,
+                    .orbitSpeed = 1.0f,
+                    .rotationSpeed = 6.5f,
+                    .size = 0.10f,
+                    .color = {0.6f, 0.4f, 0.1f, 1.0f},
+                },
+            },
+            .planetIsBox = true,
+            .moonIsBox = false,
+        },
+        {
+            .data = {
+                .orbitRadius = 7.5f,
+                .orbitSpeed = 0.15f,
+                .rotationSpeed = 3.5f,
+                .size = 0.40f,
+                .color = {0.9f, 0.7f, 0.1f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.50f,
+                    .orbitSpeed = 0.8f,
+                    .rotationSpeed = 5.0f,
+                    .size = 0.09f,
+                    .color = {0.7f, 0.5f, 0.1f, 1.0f},
+                },
+            },
+            .planetIsBox = false,
+            .moonIsBox = true,
+        },
+        {
+            .data = {
+                .orbitRadius = 9.0f,
+                .orbitSpeed = 0.10f,
+                .rotationSpeed = 2.8f,
+                .size = 0.28f,
+                .color = {0.3f, 0.8f, 0.8f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.40f,
+                    .orbitSpeed = 0.7f,
+                    .rotationSpeed = 6.0f,
+                    .size = 0.18f,
+                    .color = {0.2f, 0.6f, 0.6f, 1.0f},
+                },
+            },
+            .planetIsBox = true,
+            .moonIsBox = true,
+        },
+        {
+            .data = {
+                .orbitRadius = 10.5f,
+                .orbitSpeed = 0.07f,
+                .rotationSpeed = 2.0f,
+                .size = 0.26f,
+                .color = {0.1f, 0.2f, 0.8f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.38f,
+                    .orbitSpeed = 0.6f,
+                    .rotationSpeed = 5.0f,
+                    .size = 0.15f,
+                    .color = {0.1f, 0.3f, 0.6f, 1.0f},
+                },
+            },
+            .planetIsBox = false,
+            .moonIsBox = false,
+        },
+        {
+            .data = {
+                .orbitRadius = 12.0f,
+                .orbitSpeed = 0.05f,
+                .rotationSpeed = 1.5f,
+                .size = 0.30f,
+                .color = {0.8f, 0.7f, 0.5f, 1.0f},
+                .moon = {
+                    .orbitRadius = 0.20f,
+                    .orbitSpeed = 0.5f,
+                    .rotationSpeed = 4.0f,
+                    .size = 0.09f,
+                    .color = {0.6f, 0.5f, 0.3f, 1.0f},
+                },
+            },
+            .planetIsBox = true,
+            .moonIsBox = false,
+        },
     };
 
     mPlanets.reserve(9);
@@ -103,24 +237,28 @@ void Game::init() {
 
     mRenderer.initCamera(1.0f);
 
-    swprintf_s(mWindowTitle, L"Planet Simulation [FPS] [Persp 60]");
-    SetWindowText(mRenderer.mDisplay->getHandlerWindow(), mWindowTitle);
+    SetWindowText(mRenderer.mDisplay->getHandlerWindow(), L"Planet Simulation");
+
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO(); (void)io;
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    ImGui::StyleColorsDark();
+
+    ImGui_ImplWin32_Init(mRenderer.mDisplay->getHandlerWindow());
+    ImGui_ImplDX11_Init(mRenderer.mDevice.Get(), mRenderer.mContext.Get());
 }
 
-static const wchar_t* projNames[] = {L"Persp 60", L"Persp 90", L"Persp 30", L"Ortho"};
+Game::~Game() {
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+}
 
 void Game::handleInput(float deltaTime) {
     MSG msg = {};
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
         switch (msg.message) {
-        case WM_LBUTTONDOWN:
-            mMousePressed = true;
-            mMouseX = static_cast<int>(LOWORD(msg.lParam));
-            mMouseY = static_cast<int>(HIWORD(msg.lParam));
-            break;
-        case WM_LBUTTONUP:
-            mMousePressed = false;
-            break;
         case WM_MOUSEMOVE:
             if (mMousePressed) {
                 int x = static_cast<int>(LOWORD(msg.lParam));
@@ -136,6 +274,18 @@ void Game::handleInput(float deltaTime) {
                 mMouseX = x;
                 mMouseY = y;
             }
+            break;
+        case WM_LBUTTONDOWN:
+            if (ImGui::GetIO().WantCaptureMouse)
+                break;
+            mMousePressed = true;
+            mMouseX = static_cast<int>(LOWORD(msg.lParam));
+            mMouseY = static_cast<int>(HIWORD(msg.lParam));
+            break;
+        case WM_LBUTTONUP:
+            if (ImGui::GetIO().WantCaptureMouse)
+                break;
+            mMousePressed = false;
             break;
         case WM_QUIT:
             mIsExitRequested = true;
@@ -160,27 +310,9 @@ void Game::handleInput(float deltaTime) {
                 cam.setMode(CameraMode::FPS);
             }
             cam.update();
-            swprintf_s(mWindowTitle, L"Planet Simulation [%s] [%s]",
-                       cam.mMode == CameraMode::FPS ? L"FPS" : L"Orbit",
-                       projNames[cam.getProjIndex()]);
-            SetWindowText(mRenderer.mDisplay->getHandlerWindow(), mWindowTitle);
         }
     } else {
         mCamSwitchHeld = false;
-    }
-
-    if (mInputManager.isSwitchProjection()) {
-        if (!mProjSwitchHeld) {
-            mProjSwitchHeld = true;
-            auto& cam = mRenderer.getCamera();
-            cam.cycleProj();
-            swprintf_s(mWindowTitle, L"Planet Simulation [%s] [%s]",
-                       cam.mMode == CameraMode::FPS ? L"FPS" : L"Orbit",
-                       projNames[cam.getProjIndex()]);
-            SetWindowText(mRenderer.mDisplay->getHandlerWindow(), mWindowTitle);
-        }
-    } else {
-        mProjSwitchHeld = false;
     }
 
     float moveSpeed = 6.0f * deltaTime;
@@ -249,6 +381,33 @@ void Game::Render(float deltaTime) {
                                        DirectX::XMMatrixTranslation(mx, 0.0f, mz);
         draw(body.moonObj, moonWorld, view, proj, mRenderer);
     }
+
+    ImGui_ImplDX11_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
+
+    {
+        auto& cam = mRenderer.getCamera();
+        if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("Projection")) {
+                bool persp = (cam.getProjMode() == ProjMode::Persp);
+                if (ImGui::MenuItem("Perspective", nullptr, persp))
+                    cam.setProjMode(ProjMode::Persp);
+                if (persp) {
+                    float fov = cam.getFov();
+                    if (ImGui::SliderFloat("FOV", &fov, 45.0f, 100.0f, "%.0f deg"))
+                        cam.setFov(fov);
+                }
+                if (ImGui::MenuItem("Orthographic", nullptr, !persp))
+                    cam.setProjMode(ProjMode::Ortho);
+                ImGui::EndMenu();
+            }
+            ImGui::EndMainMenuBar();
+        }
+    }
+
+    ImGui::Render();
+    ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
     mRenderer.endFrame();
 }

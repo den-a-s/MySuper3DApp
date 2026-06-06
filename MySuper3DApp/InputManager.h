@@ -10,6 +10,5 @@ public:
     bool isMoveUp() const;
     bool isMoveDown() const;
     bool isSwitchCamera() const;
-    bool isSwitchProjection() const;
     bool isExit() const;
 };

@@ -18,6 +18,7 @@ struct PlanetBody {
 class Game {
 public:
     Game();
+    ~Game();
     void run();
 
 private:
@@ -35,9 +36,6 @@ private:
     bool mMousePressed = false;
     int mMouseX = 0, mMouseY = 0;
     bool mCamSwitchHeld = false;
-    bool mProjSwitchHeld = false;
-
-    WCHAR mWindowTitle[128];
 
     bool mIsExitRequested = false;
 };

@@ -1,7 +1,13 @@
 #include "DisplayWin32.h"
+#include "imgui.h"
 #include <windows.h>
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
+    if (ImGui_ImplWin32_WndProcHandler(hwnd, umessage, wparam, lparam))
+        return true;
+
     switch (umessage) {
         case WM_DESTROY:
             PostQuitMessage(0);

@@ -2,7 +2,7 @@
 #include <directxmath.h>
 
 enum class CameraMode { FPS, Orbit };
-enum class ProjMode { Persp60, Persp90, Persp30, Ortho };
+enum class ProjMode { Persp, Ortho };
 
 class Camera {
 public:
@@ -14,8 +14,10 @@ public:
 
     void setMode(CameraMode mode);
     CameraMode getMode() const { return mMode; }
-    void cycleProj();
-    int getProjIndex() const { return static_cast<int>(mProjMode); }
+    void setProjMode(ProjMode mode);
+    ProjMode getProjMode() const { return mProjMode; }
+    void setFov(float degrees);
+    float getFov() const { return mFovDegrees; }
 
     void rotateFPS(float dYaw, float dPitch);
     void moveFPS(float forward, float right, float up);
@@ -45,8 +47,9 @@ private:
     float mRadius = 25.0f;
     DirectX::XMFLOAT3 mTarget = {0.0f, 0.0f, 0.0f};
 
-    ProjMode mProjMode = ProjMode::Persp60;
-    float mFovAngleY = DirectX::XMConvertToRadians(60.0f);
+    ProjMode mProjMode = ProjMode::Persp;
+    float mFovDegrees = 60.0f;
+    float mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
     float mNearZ = 0.1f;
     float mFarZ = 200.0f;
     float mAspect = 1.0f;
