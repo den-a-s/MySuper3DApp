@@ -28,4 +28,4 @@ private:
 
 Microsoft::WRL::ComPtr<IDXGIFactory> mustCreateDXGIFactory();
 std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> getAllDXGIAdapters();
-Microsoft::WRL::ComPtr<IDXGIAdapter> chooseDXGIAdapters();
+Microsoft::WRL::ComPtr<IDXGIAdapter> chooseAdapterFromConfig();

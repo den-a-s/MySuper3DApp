@@ -1,7 +1,7 @@
 #include "Game.h"
 #include <windows.h>
 #include <algorithm>
-#include <iostream>
+
 
 Game::Game() : mRenderer(Renderer::create()) { 
     init(); 

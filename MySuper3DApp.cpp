@@ -1,5 +1,5 @@
 #include "MySuper3DApp/Game.h"
-#include <iostream>
+#include <windows.h>
 #include <exception>
 
 int main() {
@@ -7,7 +7,9 @@ int main() {
         Game game;
         game.run();
     } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
+        OutputDebugStringA("Error: ");
+        OutputDebugStringA(e.what());
+        OutputDebugStringA("\n");
         return -1;
     }
     return 0;

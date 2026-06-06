@@ -4,9 +4,10 @@
 #include <directxmath.h>
 #include <dxgi.h>
 #include <windows.h>
-#include <iostream>
+#include <fstream>
 #include <format>
 #include <vector>
+#include <json.hpp>
 
 #pragma comment(lib, "d3d11.lib")
 #pragma comment(lib, "dxgi.lib")
@@ -40,32 +41,58 @@ std::vector<Microsoft::WRL::ComPtr<IDXGIAdapter>> getAllDXGIAdapters() {
     return vAdapters;
 }
 
-Microsoft::WRL::ComPtr<IDXGIAdapter> chooseDXGIAdapters() {
+Microsoft::WRL::ComPtr<IDXGIAdapter> chooseAdapterFromConfig() {
     auto adapters = getAllDXGIAdapters();
-    for (int i = 0; i < adapters.size(); ++i) {
-        DXGI_ADAPTER_DESC adapterDesc;
-        HRESULT hr = adapters[i]->GetDesc(&adapterDesc);
-        if (FAILED(hr)) break;
-        char cardName[128];
-        size_t convertedChars;
-        wcstombs_s(&convertedChars, cardName, adapterDesc.Description,
-                   sizeof(cardName));
-        std::cout << std::format("Video adapter{}: {} \n", i, cardName);
+    if (adapters.empty())
+        throw std::runtime_error("No DXGI adapters found");
+
+    nlohmann::json config;
+    {
+        std::ifstream f("adapters.json");
+        if (!f.is_open())
+            throw std::runtime_error("adapters.json not found in current working directory");
+        f >> config;
     }
-    int numAdapter;
-    std::cout << "Choose adapter:";
-    std::cin >> numAdapter;
-    if (0 <= numAdapter && numAdapter < adapters.size()) {
-        return adapters[numAdapter];
-    } else {
-        throw std::runtime_error("FAILED Choose not exists adapter");
+
+    auto& adapterCfg = config["adapter"];
+    std::string mode = adapterCfg.value("mode", "auto");
+
+    if (mode == "by_name") {
+        std::string preferred = adapterCfg.value("preferred_name", "");
+        for (auto& a : adapters) {
+            DXGI_ADAPTER_DESC desc;
+            if (SUCCEEDED(a->GetDesc(&desc))) {
+                char name[128];
+                wcstombs_s(nullptr, name, desc.Description, sizeof(name));
+                if (strstr(name, preferred.c_str()))
+                    return a;
+            }
+        }
     }
+
+    if (mode == "by_index") {
+        int idx = adapterCfg.value("index", 0);
+        if (idx >= 0 && idx < (int)adapters.size())
+            return adapters[idx];
+    }
+
+    SIZE_T bestMem = 0;
+    size_t bestIdx = 0;
+    for (size_t i = 0; i < adapters.size(); ++i) {
+        DXGI_ADAPTER_DESC desc;
+        if (SUCCEEDED(adapters[i]->GetDesc(&desc)) &&
+            desc.DedicatedVideoMemory > bestMem) {
+            bestMem = desc.DedicatedVideoMemory;
+            bestIdx = i;
+        }
+    }
+    return adapters[bestIdx];
 }
 
 Renderer Renderer::create() {
     Renderer renderer;
     renderer.mDisplay = std::make_shared<DisplayWin32>(L"Pong Game", 800, 800);
-    renderer.mAdapter = chooseDXGIAdapters();
+    renderer.mAdapter = chooseAdapterFromConfig();
 
 
     D3D_FEATURE_LEVEL featureLevel[] = {D3D_FEATURE_LEVEL_11_1};

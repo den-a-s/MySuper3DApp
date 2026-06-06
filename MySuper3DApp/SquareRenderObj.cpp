@@ -1,6 +1,7 @@
 #include "SquareRenderObj.h"
 #include <windows.h>
-#include <iostream>
+#include <stdexcept>
+
 
 SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderFileName) {
     SquareRenderObj obj;
@@ -13,7 +14,8 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     if (FAILED(res)) {
         if (errorVertexCode) {
             char* compileErrors = (char*)(errorVertexCode->GetBufferPointer());
-            std::cout << compileErrors << std::endl;
+            OutputDebugStringA(compileErrors);
+            OutputDebugStringA("\n");
         } else {
             MessageBox(r.mDisplay->getHandlerWindow(), L"MyVeryFirstShader.hlsl",
                        L"Missing Shader File", MB_OK);
@@ -31,7 +33,8 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     if (FAILED(res)) {
         if (errorPixelCode) {
             char* compileErrors = (char*)(errorPixelCode->GetBufferPointer());
-            std::cout << compileErrors << std::endl;
+            OutputDebugStringA(compileErrors);
+            OutputDebugStringA("\n");
         }
         throw std::runtime_error("FAILED Compile pixel shader");
     }
