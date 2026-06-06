@@ -45,6 +45,16 @@ void Game::init() {
     mBall =
         SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
 
+    auto towerMesh = createQuadMeshData();
+    mLeftTower =
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
+    mRightTower =
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
+
+    auto bulletMesh = createQuadMeshData();
+    mProjectileRenderObj =
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", bulletMesh);
+
     mLeftPaddlePos = DirectX::XMFLOAT3(-3.5f, 0.0f, 0.0f);
     mRightPaddlePos = DirectX::XMFLOAT3(3.5f, 0.0f, 0.0f);
     mBallPos = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
@@ -52,9 +62,13 @@ void Game::init() {
 
     mPaddleScale = DirectX::XMFLOAT3(0.5f, 2.0f, 1.0f);
     mBallScale = DirectX::XMFLOAT3(0.4f, 0.4f, 1.0f);
+    mTowerScale = DirectX::XMFLOAT3(0.3f, 0.3f, 1.0f);
+    mBulletScale = DirectX::XMFLOAT3(0.15f, 0.15f, 1.0f);
 
     mScoreLeft = 0;
     mScoreRight = 0;
+
+    mProjectiles.reserve(100);
 
     mRenderer.initCamera(
         DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f),
@@ -165,6 +179,9 @@ void Game::Update(float deltaTime) {
         resetBall();
         updateWindowTitle();
     }
+
+    updateTowers(deltaTime);
+    updateProjectiles(deltaTime);
 }
 
 void Game::resetBall() {
@@ -180,6 +197,87 @@ void Game::updateWindowTitle() {
     SetWindowText(mRenderer.mDisplay->getHandlerWindow(), text);
 }
 
+void Game::updateTowers(float deltaTime) {
+    mTowerFireTimer += deltaTime;
+    if (mTowerFireTimer >= mTowerFireInterval) {
+        mTowerFireTimer -= mTowerFireInterval;
+
+        float leftDist = mBallPos.x - mLeftPaddlePos.x;
+        if (leftDist > 0.0f && leftDist < mTowerRange) {
+            fireProjectile(mLeftPaddlePos, mBallPos);
+        }
+
+        float rightDist = mRightPaddlePos.x - mBallPos.x;
+        if (rightDist > 0.0f && rightDist < mTowerRange) {
+            fireProjectile(mRightPaddlePos, mBallPos);
+        }
+    }
+}
+
+void Game::updateProjectiles(float deltaTime) {
+    DirectX::BoundingBox ballBox;
+    ballBox.Center = DirectX::XMFLOAT3(mBallPos.x, mBallPos.y, 0.0f);
+    ballBox.Extents =
+        DirectX::XMFLOAT3(mBallScale.x * 0.5f, mBallScale.y * 0.5f, 0.5f);
+
+    for (auto& p : mProjectiles) {
+        if (!p.active) continue;
+
+        p.position.x += p.velocity.x * deltaTime;
+        p.position.y += p.velocity.y * deltaTime;
+
+        DirectX::BoundingBox bulletBox;
+        bulletBox.Center =
+            DirectX::XMFLOAT3(p.position.x, p.position.y, 0.0f);
+        bulletBox.Extents =
+            DirectX::XMFLOAT3(mBulletScale.x * 0.5f, mBulletScale.y * 0.5f, 0.5f);
+
+        if (ballBox.Intersects(bulletBox)) {
+            mBallVel.x += p.velocity.x * 0.3f;
+            mBallVel.y += p.velocity.y * 0.3f;
+            p.active = false;
+        }
+
+        if (p.position.x < -6.0f || p.position.x > 6.0f ||
+            p.position.y < -5.0f || p.position.y > 5.0f) {
+            p.active = false;
+        }
+    }
+}
+
+void Game::fireProjectile(const DirectX::XMFLOAT3& fromPos,
+                           const DirectX::XMFLOAT3& targetPos) {
+    Projectile* p = nullptr;
+    for (auto& proj : mProjectiles) {
+        if (!proj.active) {
+            p = &proj;
+            break;
+        }
+    }
+    if (!p) {
+        mProjectiles.emplace_back();
+        p = &mProjectiles.back();
+    }
+
+    DirectX::XMVECTOR from = DirectX::XMLoadFloat3(&fromPos);
+    DirectX::XMVECTOR target = DirectX::XMLoadFloat3(&targetPos);
+    DirectX::XMVECTOR dir = DirectX::XMVectorSubtract(target, from);
+    float len;
+    DirectX::XMStoreFloat(&len, DirectX::XMVector3Length(dir));
+    if (len < 0.001f) {
+        dir = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
+    } else {
+        dir = DirectX::XMVectorScale(dir, 1.0f / len);
+    }
+
+    DirectX::XMFLOAT3 vel;
+    DirectX::XMStoreFloat3(&vel, DirectX::XMVectorScale(dir, mBulletSpeed));
+
+    p->position = DirectX::XMFLOAT3(fromPos.x, fromPos.y, 0.0f);
+    p->velocity = vel;
+    p->active = true;
+}
+
 void Game::Render(float deltaTime) {
     char buf[128];
     sprintf_s(buf, "Frame: %.2f ms (%.0f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
@@ -191,6 +289,23 @@ void Game::Render(float deltaTime) {
     draw(mLeftPaddle, mLeftPaddlePos, mPaddleScale, mRenderer);
     draw(mRightPaddle, mRightPaddlePos, mPaddleScale, mRenderer);
     draw(mBall, mBallPos, mBallScale, mRenderer);
+
+    {
+        DirectX::XMFLOAT3 towerOffset =
+            DirectX::XMFLOAT3(0.0f, mPaddleScale.y * 0.5f + mTowerScale.y * 0.5f, 0.0f);
+        DirectX::XMFLOAT3 leftTowerPos = {
+            mLeftPaddlePos.x, mLeftPaddlePos.y + towerOffset.y, 0.0f};
+        DirectX::XMFLOAT3 rightTowerPos = {
+            mRightPaddlePos.x, mRightPaddlePos.y + towerOffset.y, 0.0f};
+        draw(mLeftTower, leftTowerPos, mTowerScale, mRenderer);
+        draw(mRightTower, rightTowerPos, mTowerScale, mRenderer);
+    }
+
+    for (auto& p : mProjectiles) {
+        if (p.active) {
+            draw(mProjectileRenderObj, p.position, mBulletScale, mRenderer);
+        }
+    }
 
     mRenderer.endFrame();
 }

@@ -4,23 +4,41 @@
 
 
 MeshData createQuadMeshData() {
-    static DirectX::XMFLOAT4 s_points[8] = {
-        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+    static const DirectX::XMFLOAT4 s_points[8] = {
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
     };
-    static uint32_t s_indices[6] = {0, 1, 2, 1, 0, 3};
+    static const uint32_t s_indices[6] = {0, 1, 2, 1, 0, 3};
 
     MeshData md;
     md.vertices = s_points;
     md.vertexCount = 4;
     md.vertexStride = 32;
     md.indices = s_indices;
+    md.indexCount = 6;
+    return md;
+}
+
+MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color) {
+    static DirectX::XMFLOAT4 points[8] = {
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+    };
+    points[1] = color;
+    points[3] = color;
+    points[5] = color;
+    points[7] = color;
+    static const uint32_t indices[6] = {0, 1, 2, 1, 0, 3};
+
+    MeshData md;
+    md.vertices = points;
+    md.vertexCount = 4;
+    md.vertexStride = 32;
+    md.indices = indices;
     md.indexCount = 6;
     return md;
 }
@@ -62,36 +80,48 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
         throw std::runtime_error("FAILED Compile pixel shader");
     }
 
-    r.mDevice->CreateVertexShader(obj.mVertexShaderByteCode->GetBufferPointer(),
-                                  obj.mVertexShaderByteCode->GetBufferSize(),
-                                  nullptr, obj.mVertexShader.GetAddressOf());
-    r.mDevice->CreatePixelShader(obj.mPixelShaderByteCode->GetBufferPointer(),
-                                 obj.mPixelShaderByteCode->GetBufferSize(),
-                                 nullptr, obj.mPixelShader.GetAddressOf());
+    if (FAILED(r.mDevice->CreateVertexShader(
+            obj.mVertexShaderByteCode->GetBufferPointer(),
+            obj.mVertexShaderByteCode->GetBufferSize(), nullptr,
+            obj.mVertexShader.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateVertexShader");
+    }
+    if (FAILED(r.mDevice->CreatePixelShader(
+            obj.mPixelShaderByteCode->GetBufferPointer(),
+            obj.mPixelShaderByteCode->GetBufferSize(), nullptr,
+            obj.mPixelShader.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreatePixelShader");
+    }
 
     D3D11_INPUT_ELEMENT_DESC inputElements[] = {
         {"POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0,
          D3D11_INPUT_PER_VERTEX_DATA, 0},
         {"COLOR", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
          D3D11_APPEND_ALIGNED_ELEMENT, D3D11_INPUT_PER_VERTEX_DATA, 0}};
-    r.mDevice->CreateInputLayout(inputElements, 2,
-                                 obj.mVertexShaderByteCode->GetBufferPointer(),
-                                 obj.mVertexShaderByteCode->GetBufferSize(),
-                                 obj.mInputLayout.GetAddressOf());
+    if (FAILED(r.mDevice->CreateInputLayout(
+            inputElements, 2, obj.mVertexShaderByteCode->GetBufferPointer(),
+            obj.mVertexShaderByteCode->GetBufferSize(),
+            obj.mInputLayout.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateInputLayout");
+    }
 
     CD3D11_RASTERIZER_DESC rastDesc = {};
     rastDesc.CullMode = D3D11_CULL_NONE;
     rastDesc.FillMode = D3D11_FILL_SOLID;
-    r.mDevice->CreateRasterizerState(&rastDesc,
-                                     obj.mRasterizerState.GetAddressOf());
+    if (FAILED(r.mDevice->CreateRasterizerState(
+            &rastDesc, obj.mRasterizerState.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateRasterizerState");
+    }
 
     D3D11_BUFFER_DESC vertexBufDesc = {};
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufDesc.ByteWidth = meshData.vertexStride * meshData.vertexCount;
     D3D11_SUBRESOURCE_DATA vertexData = {meshData.vertices};
-    r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
-                            obj.mVertexBuffer.GetAddressOf());
+    if (FAILED(r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
+                                       obj.mVertexBuffer.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateVertexBuffer");
+    }
 
     obj.mIndexCount = meshData.indexCount;
     D3D11_BUFFER_DESC indexBufDesc = {};
@@ -99,8 +129,10 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     indexBufDesc.ByteWidth = sizeof(uint32_t) * obj.mIndexCount;
     D3D11_SUBRESOURCE_DATA indexData = {meshData.indices};
-    r.mDevice->CreateBuffer(&indexBufDesc, &indexData,
-                            obj.mIndexBuffer.GetAddressOf());
+    if (FAILED(r.mDevice->CreateBuffer(&indexBufDesc, &indexData,
+                                       obj.mIndexBuffer.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateIndexBuffer");
+    }
 
     obj.mStride = meshData.vertexStride;
     obj.mOffset = 0;
@@ -109,8 +141,10 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     cbDesc.ByteWidth = sizeof(DirectX::XMMATRIX) * 3;
     cbDesc.Usage = D3D11_USAGE_DEFAULT;
     cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-    r.mDevice->CreateBuffer(&cbDesc, nullptr,
-                            obj.mConstantBuffer.GetAddressOf());
+    if (FAILED(r.mDevice->CreateBuffer(&cbDesc, nullptr,
+                                       obj.mConstantBuffer.GetAddressOf()))) {
+        throw std::runtime_error("FAILED CreateConstantBuffer");
+    }
 
     return obj;
 }

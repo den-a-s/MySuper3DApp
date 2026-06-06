@@ -14,6 +14,7 @@ struct MeshData {
 };
 
 MeshData createQuadMeshData();
+MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color);
 
 struct SquareRenderObj {
     Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
