@@ -17,6 +17,9 @@ struct MeshData {
 MeshData createQuadMeshData();
 MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color);
 
+MeshData createSphereMeshData(const DirectX::XMFLOAT4& color, float radius, int segments, int rings);
+MeshData createRingMeshData(const DirectX::XMFLOAT4& color, float innerRadius, float outerRadius, int segments);
+
 struct SquareRenderObj {
     Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> mIndexBuffer;

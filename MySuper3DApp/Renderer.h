@@ -12,12 +12,11 @@
 class Renderer {
 public:
     static Renderer create();
-    
+
     void beginFrame(float* clearColor);
     void endFrame();
 
-    void initCamera(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR focus, DirectX::FXMVECTOR up,
-                    float orthoHalfWidth, float orthoHalfHeight, float nearZ, float farZ);
+    void initCamera(float aspect);
 
     Camera& getCamera() { return mCamera; }
 
@@ -27,6 +26,10 @@ public:
     Microsoft::WRL::ComPtr<ID3D11DeviceContext> mContext;
     Microsoft::WRL::ComPtr<IDXGISwapChain> mSwapChain;
     Microsoft::WRL::ComPtr<ID3D11RenderTargetView> mRTV;
+
+    Microsoft::WRL::ComPtr<ID3D11Texture2D> mDepthStencilBuffer;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilView> mDepthStencilView;
+    Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
 
 private:
     Renderer() = default;

@@ -1,19 +1,27 @@
 #include "InputManager.h"
 
-bool InputManager::isLeftPaddleUp() const {
-    return GetAsyncKeyState(0x57) & 0x8000;
+bool InputManager::isMoveForward() const {
+    return GetAsyncKeyState(0x57) & 0x8000; // W
 }
 
-bool InputManager::isLeftPaddleDown() const {
-    return GetAsyncKeyState(0x53) & 0x8000;
+bool InputManager::isMoveBackward() const {
+    return GetAsyncKeyState(0x53) & 0x8000; // S
 }
 
-bool InputManager::isRightPaddleUp() const {
-    return GetAsyncKeyState(VK_UP) & 0x8000;
+bool InputManager::isMoveLeft() const {
+    return GetAsyncKeyState(0x41) & 0x8000; // A
 }
 
-bool InputManager::isRightPaddleDown() const {
-    return GetAsyncKeyState(VK_DOWN) & 0x8000;
+bool InputManager::isMoveRight() const {
+    return GetAsyncKeyState(0x44) & 0x8000; // D
+}
+
+bool InputManager::isMoveUp() const {
+    return GetAsyncKeyState(VK_SPACE) & 0x8000; // Space
+}
+
+bool InputManager::isMoveDown() const {
+    return GetAsyncKeyState(VK_SHIFT) & 0x8000; // Shift
 }
 
 bool InputManager::isExit() const {

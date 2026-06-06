@@ -3,9 +3,11 @@
 
 class InputManager {
 public:
-    bool isLeftPaddleUp() const;
-    bool isLeftPaddleDown() const;
-    bool isRightPaddleUp() const;
-    bool isRightPaddleDown() const;
+    bool isMoveForward() const;
+    bool isMoveBackward() const;
+    bool isMoveLeft() const;
+    bool isMoveRight() const;
+    bool isMoveUp() const;
+    bool isMoveDown() const;
     bool isExit() const;
 };

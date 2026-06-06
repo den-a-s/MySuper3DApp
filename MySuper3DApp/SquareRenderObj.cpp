@@ -32,6 +32,89 @@ MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color) {
 }
 
 
+MeshData createSphereMeshData(const DirectX::XMFLOAT4& color, float radius, int segments, int rings) {
+    MeshData md;
+    for (int r = 0; r <= rings; ++r) {
+        float phi = DirectX::XM_PI * static_cast<float>(r) / static_cast<float>(rings);
+        float sinPhi = sinf(phi);
+        float cosPhi = cosf(phi);
+        for (int s = 0; s <= segments; ++s) {
+            float theta = 2.0f * DirectX::XM_PI * static_cast<float>(s) / static_cast<float>(segments);
+            float sinTheta = sinf(theta);
+            float cosTheta = cosf(theta);
+
+            float x = radius * sinPhi * cosTheta;
+            float y = radius * cosPhi;
+            float z = radius * sinPhi * sinTheta;
+
+            float brightness = 0.3f + 0.7f * fabsf(cosPhi);
+            float stripe = 0.85f + 0.15f * sinf(theta * 5.0f + phi * 3.0f);
+            DirectX::XMFLOAT4 vcolor = DirectX::XMFLOAT4(
+                color.x * brightness * stripe,
+                color.y * brightness * stripe,
+                color.z * brightness * stripe,
+                color.w
+            );
+
+            md.vertices.push_back(DirectX::XMFLOAT4(x, y, z, 1.0f));
+            md.vertices.push_back(vcolor);
+        }
+    }
+    md.vertexCount = (rings + 1) * (segments + 1);
+
+    for (int r = 0; r < rings; ++r) {
+        for (int s = 0; s < segments; ++s) {
+            int i0 = r * (segments + 1) + s;
+            int i1 = i0 + 1;
+            int i2 = (r + 1) * (segments + 1) + s;
+            int i3 = i2 + 1;
+            md.indices.push_back(i0);
+            md.indices.push_back(i2);
+            md.indices.push_back(i1);
+            md.indices.push_back(i1);
+            md.indices.push_back(i2);
+            md.indices.push_back(i3);
+        }
+    }
+    md.indexCount = static_cast<UINT>(md.indices.size());
+    return md;
+}
+
+MeshData createRingMeshData(const DirectX::XMFLOAT4& color, float innerRadius, float outerRadius, int segments) {
+    MeshData md;
+    for (int s = 0; s <= segments; ++s) {
+        float theta = 2.0f * DirectX::XM_PI * static_cast<float>(s) / static_cast<float>(segments);
+        float sinTheta = sinf(theta);
+        float cosTheta = cosf(theta);
+
+        float xOuter = outerRadius * cosTheta;
+        float zOuter = outerRadius * sinTheta;
+        float xInner = innerRadius * cosTheta;
+        float zInner = innerRadius * sinTheta;
+
+        md.vertices.push_back(DirectX::XMFLOAT4(xOuter, 0.0f, zOuter, 1.0f));
+        md.vertices.push_back(color);
+        md.vertices.push_back(DirectX::XMFLOAT4(xInner, 0.0f, zInner, 1.0f));
+        md.vertices.push_back(color);
+    }
+    md.vertexCount = (segments + 1) * 2;
+
+    for (int s = 0; s < segments; ++s) {
+        int i0 = s * 2;
+        int i1 = i0 + 1;
+        int i2 = i0 + 2;
+        int i3 = i0 + 3;
+        md.indices.push_back(i0);
+        md.indices.push_back(i1);
+        md.indices.push_back(i2);
+        md.indices.push_back(i1);
+        md.indices.push_back(i3);
+        md.indices.push_back(i2);
+    }
+    md.indexCount = static_cast<UINT>(md.indices.size());
+    return md;
+}
+
 SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderFileName, const MeshData& meshData) {
     SquareRenderObj obj;
 

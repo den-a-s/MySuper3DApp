@@ -91,7 +91,7 @@ Microsoft::WRL::ComPtr<IDXGIAdapter> chooseAdapterFromConfig() {
 
 Renderer Renderer::create() {
     Renderer renderer;
-    renderer.mDisplay = std::make_shared<DisplayWin32>(L"Pong Game", 800, 800);
+    renderer.mDisplay = std::make_shared<DisplayWin32>(L"Planet Simulation", 800, 800);
     renderer.mAdapter = chooseAdapterFromConfig();
 
 
@@ -133,22 +133,58 @@ Renderer Renderer::create() {
     res = renderer.mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backTex));
     res = renderer.mDevice->CreateRenderTargetView(
         backTex, nullptr, renderer.mRTV.GetAddressOf());
+
+    UINT width = renderer.mDisplay->getScreenWidth();
+    UINT height = renderer.mDisplay->getScreenHeight();
+
+    D3D11_TEXTURE2D_DESC depthDesc = {};
+    depthDesc.Width = width;
+    depthDesc.Height = height;
+    depthDesc.MipLevels = 1;
+    depthDesc.ArraySize = 1;
+    depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    depthDesc.SampleDesc.Count = 1;
+    depthDesc.SampleDesc.Quality = 0;
+    depthDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    ID3D11Texture2D* depthBuffer = nullptr;
+    res = renderer.mDevice->CreateTexture2D(&depthDesc, nullptr, &depthBuffer);
+    if (FAILED(res)) {
+        throw std::runtime_error("FAILED CreateDepthStencilTexture");
+    }
+    res = renderer.mDevice->CreateDepthStencilView(
+        depthBuffer, nullptr, renderer.mDepthStencilView.GetAddressOf());
+    depthBuffer->Release();
+    if (FAILED(res)) {
+        throw std::runtime_error("FAILED CreateDepthStencilView");
+    }
+
+    D3D11_DEPTH_STENCIL_DESC dsDesc = {};
+    dsDesc.DepthEnable = TRUE;
+    dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
+    dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    res = renderer.mDevice->CreateDepthStencilState(
+        &dsDesc, renderer.mDepthStencilState.GetAddressOf());
+    if (FAILED(res)) {
+        throw std::runtime_error("FAILED CreateDepthStencilState");
+    }
+
     backTex->Release();
 
     return renderer;
 }
 
-void Renderer::initCamera(DirectX::FXMVECTOR eye, DirectX::FXMVECTOR focus, DirectX::FXMVECTOR up,
-                          float orthoHalfWidth, float orthoHalfHeight, float nearZ, float farZ) {
-    float aspect = static_cast<float>(mDisplay->getScreenWidth()) /
-                   mDisplay->getScreenHeight();
-    mCamera.init(eye, focus, up, orthoHalfWidth, orthoHalfHeight, nearZ, farZ, aspect);
+void Renderer::initCamera(float aspect) {
+    mCamera.init(aspect);
 }
 
 void Renderer::beginFrame(float* clearColor) {
     mContext->ClearState();
-    mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), nullptr);
+    mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), mDepthStencilView.Get());
     mContext->ClearRenderTargetView(mRTV.Get(), clearColor);
+    mContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    mContext->OMSetDepthStencilState(mDepthStencilState.Get(), 0);
 
     D3D11_VIEWPORT viewport = {};
     viewport.Width = static_cast<float>(mDisplay->getScreenWidth());

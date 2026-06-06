@@ -3,16 +3,35 @@
 #include <cstdio>
 #include <algorithm>
 
+static PlanetData makePlanet(float orbitRadius, float orbitSpeed, float selfRotSpeed, float size,
+                              DirectX::XMFLOAT4 color,
+                              float moonOrbitRadius, float moonOrbitSpeed, float moonSelfRotSpeed, float moonSize,
+                              DirectX::XMFLOAT4 moonColor) {
+    PlanetData p;
+    p.orbitRadius = orbitRadius;
+    p.orbitSpeed = orbitSpeed;
+    p.angle = 0.0f;
+    p.rotationSpeed = selfRotSpeed;
+    p.rotationAngle = 0.0f;
+    p.size = size;
+    p.color = color;
+    p.moon.orbitRadius = moonOrbitRadius;
+    p.moon.orbitSpeed = moonOrbitSpeed;
+    p.moon.angle = 0.0f;
+    p.moon.rotationSpeed = moonSelfRotSpeed;
+    p.moon.rotationAngle = 0.0f;
+    p.moon.size = moonSize;
+    p.moon.color = moonColor;
+    return p;
+}
 
-Game::Game() : mRenderer(Renderer::create()) { 
-    init(); 
+Game::Game() : mRenderer(Renderer::create()) {
+    init();
 }
 
 void Game::run() {
     std::chrono::time_point<std::chrono::steady_clock> prevTime =
         std::chrono::steady_clock::now();
-    unsigned int frameCount = 0;
-    float totalTime = 0.0f;
 
     while (!mIsExitRequested) {
         auto curTime = std::chrono::steady_clock::now();
@@ -23,297 +42,148 @@ void Game::run() {
         prevTime = curTime;
 
         handleInput(deltaTime);
-
-        totalTime += deltaTime;
-        frameCount++;
-        if (totalTime > 1.0f) {
-            totalTime -= 1.0f;
-            frameCount = 0;
-        }
-
         Update(deltaTime);
         Render(deltaTime);
     }
 }
 
 void Game::init() {
-    auto white = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-    auto paddleMesh = createColoredQuadMeshData(white);
-    mLeftPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
-    mRightPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
-    mBall =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
+    auto sunColor = DirectX::XMFLOAT4(1.0f, 0.85f, 0.3f, 1.0f);
+    auto sunMesh = createSphereMeshData(sunColor, 0.6f, 16, 12);
+    mSunObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", sunMesh);
 
-    auto brown = DirectX::XMFLOAT4(0.55f, 0.27f, 0.07f, 1.0f);
-    auto towerMesh = createColoredQuadMeshData(brown);
-    mLeftTower =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
-    mRightTower =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
+    auto white = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
 
-    auto yellow = DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
-    auto bulletMesh = createColoredQuadMeshData(yellow);
-    mProjectileRenderObj =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", bulletMesh);
+    auto planetDefs = std::vector<PlanetData>{
+        makePlanet(1.8f,  0.80f, 2.5f, 0.12f, DirectX::XMFLOAT4(0.7f, 0.7f, 0.7f, 1.0f),   0.25f, 1.5f, 5.0f, 0.04f, DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f)),
+        makePlanet(2.6f,  0.55f, 1.8f, 0.18f, DirectX::XMFLOAT4(0.9f, 0.8f, 0.3f, 1.0f),   0.30f, 1.2f, 4.5f, 0.05f, DirectX::XMFLOAT4(0.7f, 0.6f, 0.2f, 1.0f)),
+        makePlanet(3.5f,  0.40f, 3.0f, 0.22f, DirectX::XMFLOAT4(0.2f, 0.5f, 0.9f, 1.0f),   0.35f, 2.0f, 6.0f, 0.06f, DirectX::XMFLOAT4(0.4f, 0.4f, 0.4f, 1.0f)),
+        makePlanet(4.4f,  0.35f, 2.2f, 0.16f, DirectX::XMFLOAT4(0.8f, 0.3f, 0.1f, 1.0f),   0.28f, 1.8f, 5.5f, 0.04f, DirectX::XMFLOAT4(0.5f, 0.3f, 0.1f, 1.0f)),
+        makePlanet(5.8f,  0.20f, 4.0f, 0.50f, DirectX::XMFLOAT4(0.8f, 0.6f, 0.2f, 1.0f),   0.55f, 1.0f, 6.5f, 0.10f, DirectX::XMFLOAT4(0.6f, 0.4f, 0.1f, 1.0f)),
+        makePlanet(7.5f,  0.15f, 3.5f, 0.40f, DirectX::XMFLOAT4(0.9f, 0.7f, 0.1f, 1.0f),   0.50f, 0.8f, 5.0f, 0.09f, DirectX::XMFLOAT4(0.7f, 0.5f, 0.1f, 1.0f)),
+        makePlanet(9.0f,  0.10f, 2.8f, 0.28f, DirectX::XMFLOAT4(0.3f, 0.8f, 0.8f, 1.0f),   0.40f, 0.7f, 6.0f, 0.06f, DirectX::XMFLOAT4(0.2f, 0.6f, 0.6f, 1.0f)),
+        makePlanet(10.5f, 0.07f, 2.0f, 0.26f, DirectX::XMFLOAT4(0.1f, 0.2f, 0.8f, 1.0f),   0.38f, 0.6f, 5.0f, 0.05f, DirectX::XMFLOAT4(0.1f, 0.3f, 0.6f, 1.0f)),
+        makePlanet(12.0f, 0.05f, 1.5f, 0.10f, DirectX::XMFLOAT4(0.8f, 0.7f, 0.5f, 1.0f),   0.20f, 0.5f, 4.0f, 0.03f, DirectX::XMFLOAT4(0.6f, 0.5f, 0.3f, 1.0f)),
+    };
 
-    mLeftPaddlePos = DirectX::XMFLOAT3(-3.5f, 0.0f, 0.0f);
-    mRightPaddlePos = DirectX::XMFLOAT3(3.5f, 0.0f, 0.0f);
-    mBallPos = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-    mBallVel = DirectX::XMFLOAT3(2.0f, 1.5f, 0.0f);
+    mPlanets.reserve(9);
+    for (auto& def : planetDefs) {
+        PlanetBody body;
+        body.data = def;
 
-    mPaddleScale = DirectX::XMFLOAT3(0.5f, 2.0f, 1.0f);
-    mBallScale = DirectX::XMFLOAT3(0.4f, 0.4f, 1.0f);
-    mTowerScale = DirectX::XMFLOAT3(0.3f, 0.3f, 1.0f);
-    mBulletScale = DirectX::XMFLOAT3(0.15f, 0.15f, 1.0f);
+        auto planetMesh = createSphereMeshData(def.color, 1.0f, 16, 12);
+        body.planetObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", planetMesh);
 
-    mScoreLeft = 0;
-    mScoreRight = 0;
+        auto moonMesh = createSphereMeshData(def.moon.color, 1.0f, 12, 8);
+        body.moonObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", moonMesh);
 
-    mProjectiles.reserve(100);
+        auto ringMesh = createRingMeshData(white, 0.98f, 1.02f, 48);
+        body.orbitObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", ringMesh);
 
-    mRenderer.initCamera(
-        DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f),
-        DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f),
-        DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f),
-        5.0f, 4.0f, 0.1f, 100.0f);
+        mPlanets.push_back(std::move(body));
+    }
 
-    updateWindowTitle();
+    mRenderer.initCamera(1.0f);
+
+    SetWindowText(mRenderer.mDisplay->getHandlerWindow(), L"Planet Simulation");
 }
 
 void Game::handleInput(float deltaTime) {
-  MSG msg = {};
-  while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
-    TranslateMessage(&msg);
-    DispatchMessage(&msg);
-  }
-  if (msg.message == WM_QUIT) {
-    mIsExitRequested = true;
-    return;
-  }
+    MSG msg = {};
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        switch (msg.message) {
+        case WM_LBUTTONDOWN:
+            mMousePressed = true;
+            mMouseX = static_cast<int>(LOWORD(msg.lParam));
+            mMouseY = static_cast<int>(HIWORD(msg.lParam));
+            break;
+        case WM_LBUTTONUP:
+            mMousePressed = false;
+            break;
+        case WM_MOUSEMOVE:
+            if (mMousePressed) {
+                int x = static_cast<int>(LOWORD(msg.lParam));
+                int y = static_cast<int>(HIWORD(msg.lParam));
+                float dx = static_cast<float>(x - mMouseX) * 0.005f;
+                float dy = static_cast<float>(mMouseY - y) * 0.005f;
+                mRenderer.getCamera().rotate(dx, dy);
+                mMouseX = x;
+                mMouseY = y;
+            }
+            break;
+        case WM_QUIT:
+            mIsExitRequested = true;
+            return;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
 
     if (mInputManager.isExit()) {
-    mIsExitRequested = true;
-    return;
-  }
+        mIsExitRequested = true;
+        return;
+    }
 
-    if (mInputManager.isLeftPaddleUp()) {
-    mLeftPaddlePos.y += mPaddleSpeed * deltaTime;
-  }
-  if (mInputManager.isLeftPaddleDown()) {
-    mLeftPaddlePos.y -= mPaddleSpeed * deltaTime;
-  }
-  mLeftPaddlePos.y = std::clamp(mLeftPaddlePos.y, -3.5f, 3.5f);
+    float moveSpeed = 6.0f * deltaTime;
 
-    if (mInputManager.isRightPaddleUp()) {
-    mRightPaddlePos.y += mPaddleSpeed * deltaTime;
-  }
-  if (mInputManager.isRightPaddleDown()) {
-    mRightPaddlePos.y -= mPaddleSpeed * deltaTime;
-  }
-  mRightPaddlePos.y = std::clamp(mRightPaddlePos.y, -3.5f, 3.5f);
+    float forward = 0.0f, right = 0.0f, up = 0.0f;
+    if (mInputManager.isMoveForward())  forward += moveSpeed;
+    if (mInputManager.isMoveBackward()) forward -= moveSpeed;
+    if (mInputManager.isMoveRight())    right += moveSpeed;
+    if (mInputManager.isMoveLeft())     right -= moveSpeed;
+    if (mInputManager.isMoveUp())       up += moveSpeed;
+    if (mInputManager.isMoveDown())     up -= moveSpeed;
+
+    if (forward != 0.0f || right != 0.0f || up != 0.0f) {
+        mRenderer.getCamera().move(forward, right, up);
+    }
+
+    mRenderer.getCamera().update();
 }
 
 void Game::Update(float deltaTime) {
-
-    mBallPos.x += mBallVel.x * deltaTime;
-    mBallPos.y += mBallVel.y * deltaTime;
-
-    DirectX::BoundingBox ballBox;
-    ballBox.Center = DirectX::XMFLOAT3(mBallPos.x, mBallPos.y, 0.0f);
-    ballBox.Extents =
-        DirectX::XMFLOAT3(mBallScale.x * 0.5f, mBallScale.y * 0.5f, 0.5f);
-
-    DirectX::BoundingBox topWall;
-    topWall.Center = DirectX::XMFLOAT3(0.0f, 4.0f, 0.0f);
-    topWall.Extents = DirectX::XMFLOAT3(5.0f, 0.1f, 1.0f);
-    if (ballBox.Intersects(topWall)) {
-        mBallVel.y = -mBallVel.y;
+    for (auto& body : mPlanets) {
+        body.data.angle += body.data.orbitSpeed * deltaTime;
+        body.data.rotationAngle += body.data.rotationSpeed * deltaTime;
+        body.data.moon.angle += body.data.moon.orbitSpeed * deltaTime;
+        body.data.moon.rotationAngle += body.data.moon.rotationSpeed * deltaTime;
     }
-
-    DirectX::BoundingBox bottomWall;
-    bottomWall.Center = DirectX::XMFLOAT3(0.0f, -4.0f, 0.0f);
-    bottomWall.Extents = DirectX::XMFLOAT3(5.0f, 0.1f, 1.0f);
-    if (ballBox.Intersects(bottomWall)) {
-        mBallVel.y = -mBallVel.y;
-    }
-
-    DirectX::BoundingBox leftPaddleBox;
-    leftPaddleBox.Center =
-        DirectX::XMFLOAT3(mLeftPaddlePos.x, mLeftPaddlePos.y, 0.0f);
-    leftPaddleBox.Extents =
-        DirectX::XMFLOAT3(mPaddleScale.x * 0.5f, mPaddleScale.y * 0.5f, 0.5f);
-
-    if (ballBox.Intersects(leftPaddleBox)) {
-        mBallVel.x = -mBallVel.x;
-        mBallVel.y += (mBallPos.y - mLeftPaddlePos.y) * 0.5f;
-        mBallPos.x = mLeftPaddlePos.x + leftPaddleBox.Extents.x +
-                     ballBox.Extents.x + 0.01f;
-    }
-
-    DirectX::BoundingBox rightPaddleBox;
-    rightPaddleBox.Center =
-        DirectX::XMFLOAT3(mRightPaddlePos.x, mRightPaddlePos.y, 0.0f);
-    rightPaddleBox.Extents =
-        DirectX::XMFLOAT3(mPaddleScale.x * 0.5f, mPaddleScale.y * 0.5f, 0.5f);
-
-    if (ballBox.Intersects(rightPaddleBox)) {
-        mBallVel.x = -mBallVel.x;
-        mBallVel.y += (mBallPos.y - mRightPaddlePos.y) * 0.5f;
-        mBallPos.x = mRightPaddlePos.x -
-                     (rightPaddleBox.Extents.x + ballBox.Extents.x + 0.01f);
-    }
-
-    DirectX::BoundingBox leftGoal;
-    leftGoal.Center = DirectX::XMFLOAT3(-4.5f, 0.0f, 0.0f);
-    leftGoal.Extents = DirectX::XMFLOAT3(0.2f, 4.5f, 1.0f);
-    if (ballBox.Intersects(leftGoal)) {
-        mScoreRight++;
-        resetBall();
-        updateWindowTitle();
-    }
-
-    DirectX::BoundingBox rightGoal;
-    rightGoal.Center = DirectX::XMFLOAT3(4.5f, 0.0f, 0.0f);
-    rightGoal.Extents = DirectX::XMFLOAT3(0.2f, 4.5f, 1.0f);
-    if (ballBox.Intersects(rightGoal)) {
-        mScoreLeft++;
-        resetBall();
-        updateWindowTitle();
-    }
-
-    updateTowers(deltaTime);
-    updateProjectiles(deltaTime);
-}
-
-void Game::resetBall() {
-    mBallPos = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
-    float angle = (rand() % 100 - 50) * 0.02f;
-    mBallVel =
-        DirectX::XMFLOAT3(2.0f * (mBallVel.x > 0 ? 1 : -1), 1.5f + angle, 0.0f);
-}
-
-void Game::updateWindowTitle() {
-    WCHAR text[256];
-    swprintf_s(text, L"Pong  %d  :  %d", mScoreLeft, mScoreRight);
-    SetWindowText(mRenderer.mDisplay->getHandlerWindow(), text);
-}
-
-void Game::updateTowers(float deltaTime) {
-    mTowerFireTimer += deltaTime;
-    if (mTowerFireTimer >= mTowerFireInterval) {
-        mTowerFireTimer -= mTowerFireInterval;
-
-        float towerYOffset = mPaddleScale.y * 0.5f + mTowerScale.y * 0.5f;
-        DirectX::XMFLOAT3 leftTowerPos = {
-            mLeftPaddlePos.x, mLeftPaddlePos.y + towerYOffset, 0.0f};
-        DirectX::XMFLOAT3 rightTowerPos = {
-            mRightPaddlePos.x, mRightPaddlePos.y + towerYOffset, 0.0f};
-
-        float leftDist = mBallPos.x - mLeftPaddlePos.x;
-        if (leftDist > 0.0f && leftDist < mTowerRange) {
-            fireProjectile(leftTowerPos, mBallPos);
-        }
-
-        float rightDist = mRightPaddlePos.x - mBallPos.x;
-        if (rightDist > 0.0f && rightDist < mTowerRange) {
-            fireProjectile(rightTowerPos, mBallPos);
-        }
-    }
-}
-
-void Game::updateProjectiles(float deltaTime) {
-    DirectX::BoundingBox ballBox;
-    ballBox.Center = DirectX::XMFLOAT3(mBallPos.x, mBallPos.y, 0.0f);
-    ballBox.Extents =
-        DirectX::XMFLOAT3(mBallScale.x * 0.5f, mBallScale.y * 0.5f, 0.5f);
-
-    for (auto& p : mProjectiles) {
-        if (!p.active) continue;
-
-        p.position.x += p.velocity.x * deltaTime;
-        p.position.y += p.velocity.y * deltaTime;
-
-        DirectX::BoundingBox bulletBox;
-        bulletBox.Center =
-            DirectX::XMFLOAT3(p.position.x, p.position.y, 0.0f);
-        bulletBox.Extents =
-            DirectX::XMFLOAT3(mBulletScale.x * 0.5f, mBulletScale.y * 0.5f, 0.5f);
-
-        if (ballBox.Intersects(bulletBox)) {
-            mBallVel.x += p.velocity.x * 0.3f;
-            mBallVel.y += p.velocity.y * 0.3f;
-            p.active = false;
-        }
-
-        if (p.position.x < -6.0f || p.position.x > 6.0f ||
-            p.position.y < -5.0f || p.position.y > 5.0f) {
-            p.active = false;
-        }
-    }
-}
-
-void Game::fireProjectile(const DirectX::XMFLOAT3& fromPos,
-                           const DirectX::XMFLOAT3& targetPos) {
-    Projectile* p = nullptr;
-    for (auto& proj : mProjectiles) {
-        if (!proj.active) {
-            p = &proj;
-            break;
-        }
-    }
-    if (!p) {
-        mProjectiles.emplace_back();
-        p = &mProjectiles.back();
-    }
-
-    DirectX::XMVECTOR from = DirectX::XMLoadFloat3(&fromPos);
-    DirectX::XMVECTOR target = DirectX::XMLoadFloat3(&targetPos);
-    DirectX::XMVECTOR dir = DirectX::XMVectorSubtract(target, from);
-    float len;
-    DirectX::XMStoreFloat(&len, DirectX::XMVector3Length(dir));
-    if (len < 0.001f) {
-        dir = DirectX::XMVectorSet(1.0f, 0.0f, 0.0f, 0.0f);
-    } else {
-        dir = DirectX::XMVectorScale(dir, 1.0f / len);
-    }
-
-    DirectX::XMFLOAT3 vel;
-    DirectX::XMStoreFloat3(&vel, DirectX::XMVectorScale(dir, mBulletSpeed));
-
-    p->position = DirectX::XMFLOAT3(fromPos.x, fromPos.y, 0.0f);
-    p->velocity = vel;
-    p->active = true;
 }
 
 void Game::Render(float deltaTime) {
-    //char buf[128];
-    //sprintf_s(buf, "Frame: %.2f ms (%.0f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
-    //OutputDebugStringA(buf);
-
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     mRenderer.beginFrame(clearColor);
 
-    draw(mLeftPaddle, mLeftPaddlePos, mPaddleScale, mRenderer);
-    draw(mRightPaddle, mRightPaddlePos, mPaddleScale, mRenderer);
-    draw(mBall, mBallPos, mBallScale, mRenderer);
+    auto& cam = mRenderer.getCamera();
+    auto view = cam.getView();
+    auto proj = cam.getProjection();
 
     {
-        DirectX::XMFLOAT3 towerOffset =
-            DirectX::XMFLOAT3(0.0f, mPaddleScale.y * 0.5f + mTowerScale.y * 0.5f, 0.0f);
-        DirectX::XMFLOAT3 leftTowerPos = {
-            mLeftPaddlePos.x, mLeftPaddlePos.y + towerOffset.y, 0.0f};
-        DirectX::XMFLOAT3 rightTowerPos = {
-            mRightPaddlePos.x, mRightPaddlePos.y + towerOffset.y, 0.0f};
-        draw(mLeftTower, leftTowerPos, mTowerScale, mRenderer);
-        draw(mRightTower, rightTowerPos, mTowerScale, mRenderer);
+        DirectX::XMMATRIX sunWorld = DirectX::XMMatrixRotationY(0.0f) *
+                                      DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        draw(mSunObj, sunWorld, view, proj, mRenderer);
     }
 
-    for (auto& p : mProjectiles) {
-        if (p.active) {
-            draw(mProjectileRenderObj, p.position, mBulletScale, mRenderer);
-        }
+    for (auto& body : mPlanets) {
+        DirectX::XMMATRIX orbitWorld = DirectX::XMMatrixScaling(body.data.orbitRadius, 1.0f, body.data.orbitRadius) *
+                                        DirectX::XMMatrixTranslation(0.0f, 0.0f, 0.0f);
+        draw(body.orbitObj, orbitWorld, view, proj, mRenderer);
+
+        float px = body.data.orbitRadius * cosf(body.data.angle);
+        float pz = body.data.orbitRadius * sinf(body.data.angle);
+
+        DirectX::XMMATRIX planetWorld = DirectX::XMMatrixScaling(body.data.size, body.data.size, body.data.size) *
+                                         DirectX::XMMatrixRotationY(body.data.rotationAngle) *
+                                         DirectX::XMMatrixTranslation(px, 0.0f, pz);
+        draw(body.planetObj, planetWorld, view, proj, mRenderer);
+
+        float mx = px + body.data.moon.orbitRadius * cosf(body.data.moon.angle);
+        float mz = pz + body.data.moon.orbitRadius * sinf(body.data.moon.angle);
+
+        DirectX::XMMATRIX moonWorld = DirectX::XMMatrixScaling(body.data.moon.size, body.data.moon.size, body.data.moon.size) *
+                                       DirectX::XMMatrixRotationY(body.data.moon.rotationAngle) *
+                                       DirectX::XMMatrixTranslation(mx, 0.0f, mz);
+        draw(body.moonObj, moonWorld, view, proj, mRenderer);
     }
 
     mRenderer.endFrame();
