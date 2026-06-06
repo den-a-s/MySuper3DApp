@@ -24,6 +24,14 @@ bool InputManager::isMoveDown() const {
     return GetAsyncKeyState(VK_SHIFT) & 0x8000; // Shift
 }
 
+bool InputManager::isSwitchCamera() const {
+    return GetAsyncKeyState(0x43) & 0x8000; // C
+}
+
+bool InputManager::isSwitchProjection() const {
+    return GetAsyncKeyState(0x56) & 0x8000; // V
+}
+
 bool InputManager::isExit() const {
     return GetAsyncKeyState(VK_ESCAPE) & 0x8000;
 }

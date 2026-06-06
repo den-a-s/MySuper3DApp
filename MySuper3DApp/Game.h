@@ -11,6 +11,8 @@ struct PlanetBody {
     SquareRenderObj planetObj;
     SquareRenderObj moonObj;
     SquareRenderObj orbitObj;
+    bool planetIsBox;
+    bool moonIsBox;
 };
 
 class Game {
@@ -32,6 +34,10 @@ private:
 
     bool mMousePressed = false;
     int mMouseX = 0, mMouseY = 0;
+    bool mCamSwitchHeld = false;
+    bool mProjSwitchHeld = false;
+
+    WCHAR mWindowTitle[128];
 
     bool mIsExitRequested = false;
 };

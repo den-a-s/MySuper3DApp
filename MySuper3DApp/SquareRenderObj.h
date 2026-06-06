@@ -18,6 +18,7 @@ MeshData createQuadMeshData();
 MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color);
 
 MeshData createSphereMeshData(const DirectX::XMFLOAT4& color, float radius, int segments, int rings);
+MeshData createBoxMeshData(const DirectX::XMFLOAT4& color, float width, float height, float depth);
 MeshData createRingMeshData(const DirectX::XMFLOAT4& color, float innerRadius, float outerRadius, int segments);
 
 struct SquareRenderObj {

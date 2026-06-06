@@ -80,6 +80,45 @@ MeshData createSphereMeshData(const DirectX::XMFLOAT4& color, float radius, int 
     return md;
 }
 
+MeshData createBoxMeshData(const DirectX::XMFLOAT4& color, float width, float height, float depth) {
+    struct Face { float nx, ny, nz; float bright; };
+    Face faces[] = {
+        { 0,  1,  0, 1.00f},  // top
+        { 0, -1,  0, 0.35f},  // bottom
+        { 1,  0,  0, 0.85f},  // right
+        {-1,  0,  0, 0.55f},  // left
+        { 0,  0,  1, 0.70f},  // front
+        { 0,  0, -1, 0.70f},  // back
+    };
+    float hw = width * 0.5f, hh = height * 0.5f, hd = depth * 0.5f;
+    float verts[6][4][3] = {
+        {{-hw, hh,-hd},{ hw, hh,-hd},{ hw, hh, hd},{-hw, hh, hd}}, // top
+        {{-hw,-hh, hd},{ hw,-hh, hd},{ hw,-hh,-hd},{-hw,-hh,-hd}}, // bottom
+        {{ hw, hh, hd},{ hw, hh,-hd},{ hw,-hh,-hd},{ hw,-hh, hd}}, // right
+        {{-hw, hh,-hd},{-hw, hh, hd},{-hw,-hh, hd},{-hw,-hh,-hd}}, // left
+        {{-hw, hh, hd},{ hw, hh, hd},{ hw,-hh, hd},{-hw,-hh, hd}}, // front
+        {{ hw, hh,-hd},{-hw, hh,-hd},{-hw,-hh,-hd},{ hw,-hh,-hd}}, // back
+    };
+    MeshData md;
+    for (int f = 0; f < 6; ++f) {
+        float b = faces[f].bright;
+        DirectX::XMFLOAT4 vc(color.x * b, color.y * b, color.z * b, color.w);
+        for (int v = 0; v < 4; ++v) {
+            md.vertices.push_back(DirectX::XMFLOAT4(verts[f][v][0], verts[f][v][1], verts[f][v][2], 1.0f));
+            md.vertices.push_back(vc);
+        }
+    }
+    md.vertexCount = 24;
+    uint32_t tri[6][6] = {
+        {0,1,2, 0,2,3}, {4,5,6, 4,6,7},
+        {8,9,10, 8,10,11}, {12,13,14, 12,14,15},
+        {16,17,18, 16,18,19}, {20,21,22, 20,22,23},
+    };
+    for (auto& t : tri) for (int i = 0; i < 6; ++i) md.indices.push_back(t[i]);
+    md.indexCount = 36;
+    return md;
+}
+
 MeshData createRingMeshData(const DirectX::XMFLOAT4& color, float innerRadius, float outerRadius, int segments) {
     MeshData md;
     for (int s = 0; s <= segments; ++s) {
