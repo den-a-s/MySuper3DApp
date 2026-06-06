@@ -1,5 +1,6 @@
 #include "Game.h"
 #include <windows.h>
+#include <cstdio>
 #include <algorithm>
 
 
@@ -168,6 +169,10 @@ void Game::updateWindowTitle() {
 }
 
 void Game::Render(float deltaTime) {
+    char buf[128];
+    sprintf_s(buf, "Frame: %.2f ms (%.0f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
+    OutputDebugStringA(buf);
+
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     mRenderer.beginFrame(clearColor);
 

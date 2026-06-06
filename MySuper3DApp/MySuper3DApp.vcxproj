@@ -153,9 +153,6 @@
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SquareRenderObj.h" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="..\adapters.json" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="CopyAdaptersJson" AfterTargets="Build" Inputs="..\adapters.json" Outputs="$(OutDir)adapters.json">
     <Copy SourceFiles="..\adapters.json" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />

@@ -154,6 +154,8 @@ void Renderer::beginFrame(float* clearColor) {
     mContext->RSSetViewports(1, &viewport);
 }
 
-void Renderer::endFrame() { 
-    mSwapChain->Present(1, 0); 
+void Renderer::endFrame() {
+    ID3D11RenderTargetView* nullRTV = nullptr;
+    mContext->OMSetRenderTargets(1, &nullRTV, nullptr);
+    mSwapChain->Present(1, 0);
 }
