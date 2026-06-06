@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36623.8 d17.14
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MySuper3DApp", "MySuper3DApp\MySuper3DApp.vcxproj", "{8B3DAB3C-0E2B-47C4-8B07-7E6B7A1F1F1F}"
 EndProject

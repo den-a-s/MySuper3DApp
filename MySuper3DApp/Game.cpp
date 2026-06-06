@@ -37,11 +37,11 @@ void Game::run() {
 
 void Game::init() {
     mLeftPaddle =
-        SquareRenderObj::create(mRenderer, L"./Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
     mRightPaddle =
-        SquareRenderObj::create(mRenderer, L"./Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
     mBall =
-        SquareRenderObj::create(mRenderer, L"./Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
 
     mLeftPaddlePos = DirectX::XMFLOAT3(-3.5f, 0.0f, 0.0f);
     mRightPaddlePos = DirectX::XMFLOAT3(3.5f, 0.0f, 0.0f);
@@ -178,12 +178,12 @@ void Game::Render(float deltaTime) {
     float aspect = static_cast<float>(mRenderer.mDisplay->getScreenWidth()) /
                    mRenderer.mDisplay->getScreenHeight();
     DirectX::XMMATRIX projection =
-        DirectX::XMMatrixOrthographicOffCenterLH(-5.0f * aspect,  // лево
-                                                 5.0f * aspect,   // право
-                                                 -4.0f,           // низ
-                                                 4.0f,            // верх
-                                                 0.1f,     // ближняя плоскость
-                                                 100.0f);  // дальняя плоскость
+        DirectX::XMMatrixOrthographicOffCenterLH(-5.0f * aspect,  // пїЅпїЅпїЅпїЅ
+                                                 5.0f * aspect,   // пїЅпїЅпїЅпїЅпїЅ
+                                                 -4.0f,           // пїЅпїЅпїЅ
+                                                 4.0f,            // пїЅпїЅпїЅпїЅ
+                                                 0.1f,     // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+                                                 100.0f);  // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 
     DirectX::XMMATRIX worldLeft =
         DirectX::XMMatrixScaling(mPaddleScale.x, mPaddleScale.y,
