@@ -5,6 +5,16 @@
 #include <directxmath.h>
 #include <directxcollision.h>
 
+struct MeshData {
+    const void* vertices = nullptr;
+    UINT vertexCount = 0;
+    UINT vertexStride = 0;
+    const uint32_t* indices = nullptr;
+    UINT indexCount = 0;
+};
+
+MeshData createQuadMeshData();
+
 struct SquareRenderObj {
     Microsoft::WRL::ComPtr<ID3D11Buffer> mVertexBuffer;
     Microsoft::WRL::ComPtr<ID3D11Buffer> mIndexBuffer;
@@ -22,7 +32,7 @@ struct SquareRenderObj {
     Microsoft::WRL::ComPtr<ID3DBlob> mVertexShaderByteCode;
     Microsoft::WRL::ComPtr<ID3DBlob> mPixelShaderByteCode;
 
-    static SquareRenderObj create(Renderer& r, const std::wstring& shaderFileName);
+    static SquareRenderObj create(Renderer& r, const std::wstring& shaderFileName, const MeshData& meshData);
 };
 
 void draw(const SquareRenderObj& obj, const DirectX::XMMATRIX& world,

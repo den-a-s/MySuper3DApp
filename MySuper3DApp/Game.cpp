@@ -37,12 +37,13 @@ void Game::run() {
 }
 
 void Game::init() {
+    auto mesh = createQuadMeshData();
     mLeftPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
     mRightPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
     mBall =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl");
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
 
     mLeftPaddlePos = DirectX::XMFLOAT3(-3.5f, 0.0f, 0.0f);
     mRightPaddlePos = DirectX::XMFLOAT3(3.5f, 0.0f, 0.0f);

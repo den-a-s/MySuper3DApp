@@ -3,7 +3,30 @@
 #include <stdexcept>
 
 
-SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderFileName) {
+MeshData createQuadMeshData() {
+    static DirectX::XMFLOAT4 s_points[8] = {
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
+        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
+        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
+        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
+        DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
+        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
+        DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+    };
+    static uint32_t s_indices[6] = {0, 1, 2, 1, 0, 3};
+
+    MeshData md;
+    md.vertices = s_points;
+    md.vertexCount = 4;
+    md.vertexStride = 32;
+    md.indices = s_indices;
+    md.indexCount = 6;
+    return md;
+}
+
+
+SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderFileName, const MeshData& meshData) {
     SquareRenderObj obj;
 
     ID3DBlob* errorVertexCode = nullptr;
@@ -62,36 +85,24 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     r.mDevice->CreateRasterizerState(&rastDesc,
                                      obj.mRasterizerState.GetAddressOf());
 
-    DirectX::XMFLOAT4 points[8] = {
-        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),
-        DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-    };
-
     D3D11_BUFFER_DESC vertexBufDesc = {};
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-    vertexBufDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) * std::size(points);
-    D3D11_SUBRESOURCE_DATA vertexData = {points};
+    vertexBufDesc.ByteWidth = meshData.vertexStride * meshData.vertexCount;
+    D3D11_SUBRESOURCE_DATA vertexData = {meshData.vertices};
     r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
                             obj.mVertexBuffer.GetAddressOf());
 
-    int indices[] = {0, 1, 2, 1, 0, 3};
-    obj.mIndexCount = std::size(indices);
+    obj.mIndexCount = meshData.indexCount;
     D3D11_BUFFER_DESC indexBufDesc = {};
     indexBufDesc.Usage = D3D11_USAGE_IMMUTABLE;
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
-    indexBufDesc.ByteWidth = sizeof(int) * obj.mIndexCount;
-    D3D11_SUBRESOURCE_DATA indexData = {indices};
+    indexBufDesc.ByteWidth = sizeof(uint32_t) * obj.mIndexCount;
+    D3D11_SUBRESOURCE_DATA indexData = {meshData.indices};
     r.mDevice->CreateBuffer(&indexBufDesc, &indexData,
                             obj.mIndexBuffer.GetAddressOf());
 
-    obj.mStride = 32;
+    obj.mStride = meshData.vertexStride;
     obj.mOffset = 0;
 
     D3D11_BUFFER_DESC cbDesc = {};
