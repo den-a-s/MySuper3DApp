@@ -43,6 +43,6 @@ private:
     float mTowerFireTimer = 0.0f;
     float mTowerFireInterval = 0.35f;
     float mTowerRange = 4.0f;
-    float mBulletSpeed = 5.0f;
+    float mBulletSpeed = 12.0f;
     bool mIsExitRequested = false;
 };

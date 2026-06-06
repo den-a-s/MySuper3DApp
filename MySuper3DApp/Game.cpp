@@ -202,14 +202,20 @@ void Game::updateTowers(float deltaTime) {
     if (mTowerFireTimer >= mTowerFireInterval) {
         mTowerFireTimer -= mTowerFireInterval;
 
+        float towerYOffset = mPaddleScale.y * 0.5f + mTowerScale.y * 0.5f;
+        DirectX::XMFLOAT3 leftTowerPos = {
+            mLeftPaddlePos.x, mLeftPaddlePos.y + towerYOffset, 0.0f};
+        DirectX::XMFLOAT3 rightTowerPos = {
+            mRightPaddlePos.x, mRightPaddlePos.y + towerYOffset, 0.0f};
+
         float leftDist = mBallPos.x - mLeftPaddlePos.x;
         if (leftDist > 0.0f && leftDist < mTowerRange) {
-            fireProjectile(mLeftPaddlePos, mBallPos);
+            fireProjectile(leftTowerPos, mBallPos);
         }
 
         float rightDist = mRightPaddlePos.x - mBallPos.x;
         if (rightDist > 0.0f && rightDist < mTowerRange) {
-            fireProjectile(mRightPaddlePos, mBallPos);
+            fireProjectile(rightTowerPos, mBallPos);
         }
     }
 }
