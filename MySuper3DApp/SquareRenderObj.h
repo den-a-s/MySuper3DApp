@@ -4,12 +4,13 @@
 #include <d3dcompiler.h>
 #include <directxmath.h>
 #include <directxcollision.h>
+#include <vector>
 
 struct MeshData {
-    const void* vertices = nullptr;
+    std::vector<DirectX::XMFLOAT4> vertices;
     UINT vertexCount = 0;
-    UINT vertexStride = 0;
-    const uint32_t* indices = nullptr;
+    UINT vertexStride = 32;
+    std::vector<uint32_t> indices;
     UINT indexCount = 0;
 };
 

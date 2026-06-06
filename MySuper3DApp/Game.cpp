@@ -37,21 +37,24 @@ void Game::run() {
 }
 
 void Game::init() {
-    auto mesh = createQuadMeshData();
+    auto white = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+    auto paddleMesh = createColoredQuadMeshData(white);
     mLeftPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
     mRightPaddle =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
     mBall =
-        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", paddleMesh);
 
-    auto towerMesh = createQuadMeshData();
+    auto brown = DirectX::XMFLOAT4(0.55f, 0.27f, 0.07f, 1.0f);
+    auto towerMesh = createColoredQuadMeshData(brown);
     mLeftTower =
         SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
     mRightTower =
         SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", towerMesh);
 
-    auto bulletMesh = createQuadMeshData();
+    auto yellow = DirectX::XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f);
+    auto bulletMesh = createColoredQuadMeshData(yellow);
     mProjectileRenderObj =
         SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", bulletMesh);
 
@@ -285,9 +288,9 @@ void Game::fireProjectile(const DirectX::XMFLOAT3& fromPos,
 }
 
 void Game::Render(float deltaTime) {
-    char buf[128];
-    sprintf_s(buf, "Frame: %.2f ms (%.0f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
-    OutputDebugStringA(buf);
+    //char buf[128];
+    //sprintf_s(buf, "Frame: %.2f ms (%.0f FPS)\n", deltaTime * 1000.0f, 1.0f / deltaTime);
+    //OutputDebugStringA(buf);
 
     float clearColor[] = {0.0f, 0.0f, 0.0f, 1.0f};
     mRenderer.beginFrame(clearColor);

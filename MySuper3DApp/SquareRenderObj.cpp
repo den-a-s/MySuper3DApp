@@ -4,41 +4,29 @@
 
 
 MeshData createQuadMeshData() {
-    static const DirectX::XMFLOAT4 s_points[8] = {
+    MeshData md;
+    md.vertices = {
         DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
         DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f),DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
         DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
         DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f),DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
     };
-    static const uint32_t s_indices[6] = {0, 1, 2, 1, 0, 3};
-
-    MeshData md;
-    md.vertices = s_points;
     md.vertexCount = 4;
-    md.vertexStride = 32;
-    md.indices = s_indices;
+    md.indices = {0, 1, 2, 1, 0, 3};
     md.indexCount = 6;
     return md;
 }
 
 MeshData createColoredQuadMeshData(const DirectX::XMFLOAT4& color) {
-    static DirectX::XMFLOAT4 points[8] = {
-        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f),
-        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f),
-        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f), DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-    };
-    points[1] = color;
-    points[3] = color;
-    points[5] = color;
-    points[7] = color;
-    static const uint32_t indices[6] = {0, 1, 2, 1, 0, 3};
-
     MeshData md;
-    md.vertices = points;
+    md.vertices = {
+        DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f), color,
+        DirectX::XMFLOAT4(-0.5f, -0.5f, 0.5f, 1.0f), color,
+        DirectX::XMFLOAT4(0.5f, -0.5f, 0.5f, 1.0f), color,
+        DirectX::XMFLOAT4(-0.5f, 0.5f, 0.5f, 1.0f), color,
+    };
     md.vertexCount = 4;
-    md.vertexStride = 32;
-    md.indices = indices;
+    md.indices = {0, 1, 2, 1, 0, 3};
     md.indexCount = 6;
     return md;
 }
@@ -117,7 +105,7 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     vertexBufDesc.Usage = D3D11_USAGE_DEFAULT;
     vertexBufDesc.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     vertexBufDesc.ByteWidth = meshData.vertexStride * meshData.vertexCount;
-    D3D11_SUBRESOURCE_DATA vertexData = {meshData.vertices};
+    D3D11_SUBRESOURCE_DATA vertexData = {meshData.vertices.data()};
     if (FAILED(r.mDevice->CreateBuffer(&vertexBufDesc, &vertexData,
                                        obj.mVertexBuffer.GetAddressOf()))) {
         throw std::runtime_error("FAILED CreateVertexBuffer");
@@ -128,7 +116,7 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
     indexBufDesc.Usage = D3D11_USAGE_IMMUTABLE;
     indexBufDesc.BindFlags = D3D11_BIND_INDEX_BUFFER;
     indexBufDesc.ByteWidth = sizeof(uint32_t) * obj.mIndexCount;
-    D3D11_SUBRESOURCE_DATA indexData = {meshData.indices};
+    D3D11_SUBRESOURCE_DATA indexData = {meshData.indices.data()};
     if (FAILED(r.mDevice->CreateBuffer(&indexBufDesc, &indexData,
                                        obj.mIndexBuffer.GetAddressOf()))) {
         throw std::runtime_error("FAILED CreateIndexBuffer");
