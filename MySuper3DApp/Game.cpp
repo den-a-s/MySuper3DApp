@@ -5,6 +5,8 @@
 #include <windows.h>
 #include <cstdio>
 #include <algorithm>
+#include <fstream>
+#include <json.hpp>
 
 Game::Game() : mRenderer(Renderer::create()) {
     init();
@@ -33,207 +35,7 @@ void Game::init() {
     auto sunMesh = createSphereMeshData(sunColor, 0.6f, 16, 12);
     mSunObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", sunMesh);
 
-    auto white = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
-
-    struct PlanetDef {
-        PlanetData data;
-        bool planetIsBox;
-        bool moonIsBox;
-    };
-
-    auto defs = std::vector<PlanetDef>{
-        {
-            .data = {
-                .orbitRadius = 1.8f,
-                .orbitSpeed = 0.80f,
-                .rotationSpeed = 2.5f,
-                .size = 0.36f,
-                .color = {0.7f, 0.7f, 0.7f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.25f,
-                    .orbitSpeed = 1.5f,
-                    .rotationSpeed = 5.0f,
-                    .size = 0.12f,
-                    .color = {0.5f, 0.5f, 0.5f, 1.0f},
-                },
-            },
-            .planetIsBox = true,
-            .moonIsBox = false,
-        },
-        {
-            .data = {
-                .orbitRadius = 2.6f,
-                .orbitSpeed = 0.55f,
-                .rotationSpeed = 1.8f,
-                .size = 0.30f,
-                .color = {0.9f, 0.8f, 0.3f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.34f,
-                    .orbitSpeed = 1.2f,
-                    .rotationSpeed = 4.5f,
-                    .size = 0.15f,
-                    .color = {0.7f, 0.6f, 0.2f, 1.0f},
-                },
-            },
-            .planetIsBox = false,
-            .moonIsBox = true,
-        },
-        {
-            .data = {
-                .orbitRadius = 3.5f,
-                .orbitSpeed = 0.40f,
-                .rotationSpeed = 3.0f,
-                .size = 0.22f,
-                .color = {0.2f, 0.5f, 0.9f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.35f,
-                    .orbitSpeed = 2.0f,
-                    .rotationSpeed = 6.0f,
-                    .size = 0.18f,
-                    .color = {0.4f, 0.4f, 0.4f, 1.0f},
-                },
-            },
-            .planetIsBox = true,
-            .moonIsBox = true,
-        },
-        {
-            .data = {
-                .orbitRadius = 4.4f,
-                .orbitSpeed = 0.35f,
-                .rotationSpeed = 2.2f,
-                .size = 0.48f,
-                .color = {0.8f, 0.3f, 0.1f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.28f,
-                    .orbitSpeed = 1.8f,
-                    .rotationSpeed = 5.5f,
-                    .size = 0.12f,
-                    .color = {0.5f, 0.3f, 0.1f, 1.0f},
-                },
-            },
-            .planetIsBox = false,
-            .moonIsBox = false,
-        },
-        {
-            .data = {
-                .orbitRadius = 5.8f,
-                .orbitSpeed = 0.20f,
-                .rotationSpeed = 4.0f,
-                .size = 0.50f,
-                .color = {0.8f, 0.6f, 0.2f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.55f,
-                    .orbitSpeed = 1.0f,
-                    .rotationSpeed = 6.5f,
-                    .size = 0.10f,
-                    .color = {0.6f, 0.4f, 0.1f, 1.0f},
-                },
-            },
-            .planetIsBox = true,
-            .moonIsBox = false,
-        },
-        {
-            .data = {
-                .orbitRadius = 7.5f,
-                .orbitSpeed = 0.15f,
-                .rotationSpeed = 3.5f,
-                .size = 0.40f,
-                .color = {0.9f, 0.7f, 0.1f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.50f,
-                    .orbitSpeed = 0.8f,
-                    .rotationSpeed = 5.0f,
-                    .size = 0.09f,
-                    .color = {0.7f, 0.5f, 0.1f, 1.0f},
-                },
-            },
-            .planetIsBox = false,
-            .moonIsBox = true,
-        },
-        {
-            .data = {
-                .orbitRadius = 9.0f,
-                .orbitSpeed = 0.10f,
-                .rotationSpeed = 2.8f,
-                .size = 0.28f,
-                .color = {0.3f, 0.8f, 0.8f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.40f,
-                    .orbitSpeed = 0.7f,
-                    .rotationSpeed = 6.0f,
-                    .size = 0.18f,
-                    .color = {0.2f, 0.6f, 0.6f, 1.0f},
-                },
-            },
-            .planetIsBox = true,
-            .moonIsBox = true,
-        },
-        {
-            .data = {
-                .orbitRadius = 10.5f,
-                .orbitSpeed = 0.07f,
-                .rotationSpeed = 2.0f,
-                .size = 0.26f,
-                .color = {0.1f, 0.2f, 0.8f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.38f,
-                    .orbitSpeed = 0.6f,
-                    .rotationSpeed = 5.0f,
-                    .size = 0.15f,
-                    .color = {0.1f, 0.3f, 0.6f, 1.0f},
-                },
-            },
-            .planetIsBox = false,
-            .moonIsBox = false,
-        },
-        {
-            .data = {
-                .orbitRadius = 12.0f,
-                .orbitSpeed = 0.05f,
-                .rotationSpeed = 1.5f,
-                .size = 0.30f,
-                .color = {0.8f, 0.7f, 0.5f, 1.0f},
-                .moon = {
-                    .orbitRadius = 0.20f,
-                    .orbitSpeed = 0.5f,
-                    .rotationSpeed = 4.0f,
-                    .size = 0.09f,
-                    .color = {0.6f, 0.5f, 0.3f, 1.0f},
-                },
-            },
-            .planetIsBox = true,
-            .moonIsBox = false,
-        },
-    };
-
-    mPlanets.reserve(9);
-    for (auto& d : defs) {
-        PlanetBody body;
-        body.data = d.data;
-        body.planetIsBox = d.planetIsBox;
-        body.moonIsBox = d.moonIsBox;
-
-        if (d.planetIsBox) {
-            auto mesh = createBoxMeshData(d.data.color, d.data.size * 2, d.data.size * 2, d.data.size * 2);
-            body.planetObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
-        } else {
-            auto mesh = createSphereMeshData(d.data.color, 1.0f, 16, 12);
-            body.planetObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
-        }
-
-        if (d.moonIsBox) {
-            auto mesh = createBoxMeshData(d.data.moon.color, d.data.moon.size * 2, d.data.moon.size * 2, d.data.moon.size * 2);
-            body.moonObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
-        } else {
-            auto mesh = createSphereMeshData(d.data.moon.color, 1.0f, 12, 8);
-            body.moonObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
-        }
-
-        auto ringMesh = createRingMeshData(white, 0.98f, 1.02f, 48);
-        body.orbitObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", ringMesh);
-
-        mPlanets.push_back(std::move(body));
-    }
+    reloadPlanets();
 
     mRenderer.initCamera(1.0f);
 
@@ -247,6 +49,82 @@ void Game::init() {
 
     ImGui_ImplWin32_Init(mRenderer.mDisplay->getHandlerWindow());
     ImGui_ImplDX11_Init(mRenderer.mDevice.Get(), mRenderer.mContext.Get());
+}
+
+void Game::reloadPlanets() {
+    using json = nlohmann::json;
+
+    std::ifstream f(mPlanetsJsonPath);
+    if (!f.is_open()) {
+        mReloadStatus = "planets.json not found, keeping current planets";
+        return;
+    }
+
+    json j;
+    try {
+        f >> j;
+    } catch (...) {
+        mReloadStatus = "Failed to parse planets.json, keeping current planets";
+        return;
+    }
+
+    auto white = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+
+    mPlanets.clear();
+
+    for (auto& item : j["planets"]) {
+        PlanetBody body;
+
+        body.data.orbitRadius = item["orbitRadius"];
+        body.data.orbitSpeed = item["orbitSpeed"];
+        body.data.angle = 0.0f;
+        body.data.rotationSpeed = item["rotationSpeed"];
+        body.data.rotationAngle = 0.0f;
+        body.data.size = item["size"];
+        {
+            auto& c = item["color"];
+            body.data.color = DirectX::XMFLOAT4(c[0], c[1], c[2], c[3]);
+        }
+
+        body.planetIsBox = item["planetIsBox"];
+
+        if (body.planetIsBox) {
+            auto mesh = createBoxMeshData(body.data.color, body.data.size * 2, body.data.size * 2, body.data.size * 2);
+            body.planetObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        } else {
+            auto mesh = createSphereMeshData(body.data.color, 1.0f, 16, 12);
+            body.planetObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        }
+
+        auto& moon = item["moon"];
+        body.data.moon.orbitRadius = moon["orbitRadius"];
+        body.data.moon.orbitSpeed = moon["orbitSpeed"];
+        body.data.moon.angle = 0.0f;
+        body.data.moon.rotationSpeed = moon["rotationSpeed"];
+        body.data.moon.rotationAngle = 0.0f;
+        body.data.moon.size = moon["size"];
+        {
+            auto& mc = moon["color"];
+            body.data.moon.color = DirectX::XMFLOAT4(mc[0], mc[1], mc[2], mc[3]);
+        }
+
+        body.moonIsBox = item["moonIsBox"];
+
+        if (body.moonIsBox) {
+            auto mesh = createBoxMeshData(body.data.moon.color, body.data.moon.size * 2, body.data.moon.size * 2, body.data.moon.size * 2);
+            body.moonObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        } else {
+            auto mesh = createSphereMeshData(body.data.moon.color, 1.0f, 12, 8);
+            body.moonObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
+        }
+
+        auto ringMesh = createRingMeshData(white, 0.98f, 1.02f, 48);
+        body.orbitObj = SquareRenderObj::create(mRenderer, L"../Shaders/MyVeryFirstShader.hlsl", ringMesh);
+
+        mPlanets.push_back(std::move(body));
+    }
+
+    mReloadStatus = "Reloaded " + std::to_string(mPlanets.size()) + " planets";
 }
 
 Game::~Game() {
@@ -389,6 +267,12 @@ void Game::Render(float deltaTime) {
     {
         auto& cam = mRenderer.getCamera();
         if (ImGui::BeginMainMenuBar()) {
+            if (ImGui::BeginMenu("File")) {
+                if (ImGui::MenuItem("Reload Planets")) {
+                    reloadPlanets();
+                }
+                ImGui::EndMenu();
+            }
             if (ImGui::BeginMenu("Projection")) {
                 bool persp = (cam.getProjMode() == ProjMode::Persp);
                 if (ImGui::MenuItem("Perspective", nullptr, persp))
@@ -401,6 +285,12 @@ void Game::Render(float deltaTime) {
                 if (ImGui::MenuItem("Orthographic", nullptr, !persp))
                     cam.setProjMode(ProjMode::Ortho);
                 ImGui::EndMenu();
+            }
+            if (!mReloadStatus.empty()) {
+                ImGui::SameLine();
+                ImGui::Spacing();
+                ImGui::Separator();
+                ImGui::TextUnformatted(mReloadStatus.c_str());
             }
             ImGui::EndMainMenuBar();
         }

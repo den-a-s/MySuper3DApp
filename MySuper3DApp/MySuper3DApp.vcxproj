@@ -163,6 +163,9 @@
   <Target Name="CopyAdaptersJson" AfterTargets="Build" Inputs="..\adapters.json" Outputs="$(OutDir)adapters.json">
     <Copy SourceFiles="..\adapters.json" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
   </Target>
+  <Target Name="CopyPlanetsJson" AfterTargets="Build" Inputs="..\planets.json" Outputs="$(OutDir)planets.json">
+    <Copy SourceFiles="..\planets.json" DestinationFolder="$(OutDir)" SkipUnchangedFiles="true" />
+  </Target>
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
 </Project>
