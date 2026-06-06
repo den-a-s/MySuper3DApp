@@ -144,12 +144,14 @@
     <ClCompile Include="..\MySuper3DApp.cpp" />
     <ClCompile Include="DisplayWin32.cpp" />
     <ClCompile Include="Game.cpp" />
+    <ClCompile Include="InputManager.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SquareRenderObj.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DisplayWin32.h" />
     <ClInclude Include="Game.h" />
+    <ClInclude Include="InputManager.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SquareRenderObj.h" />
   </ItemGroup>

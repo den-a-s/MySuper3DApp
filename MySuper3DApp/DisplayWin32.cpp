@@ -3,11 +3,6 @@
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam) {
     switch (umessage) {
-        case WM_KEYDOWN:
-            if (static_cast<unsigned int>(wparam) == 27) {
-                PostQuitMessage(0);
-            }
-            return 0;
         case WM_DESTROY:
             PostQuitMessage(0);
             return 0;

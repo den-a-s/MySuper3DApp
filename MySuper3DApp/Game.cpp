@@ -15,14 +15,14 @@ void Game::run() {
     float totalTime = 0.0f;
 
     while (!mIsExitRequested) {
-        handleInput();
-
         auto curTime = std::chrono::steady_clock::now();
         float deltaTime = std::chrono::duration_cast<std::chrono::microseconds>(
                               curTime - prevTime)
                               .count() /
                           1000000.0f;
         prevTime = curTime;
+
+        handleInput(deltaTime);
 
         totalTime += deltaTime;
         frameCount++;
@@ -58,7 +58,7 @@ void Game::init() {
     updateWindowTitle();
 }
 
-void Game::handleInput() {
+void Game::handleInput(float deltaTime) {
   MSG msg = {};
   while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
     TranslateMessage(&msg);
@@ -69,19 +69,24 @@ void Game::handleInput() {
     return;
   }
 
-    if (GetAsyncKeyState('W') & 0x8000) {
-    mLeftPaddlePos.y += mPaddleSpeed * 0.016f;
+    if (mInputManager.isExit()) {
+    mIsExitRequested = true;
+    return;
   }
-  if (GetAsyncKeyState('S') & 0x8000) {
-    mLeftPaddlePos.y -= mPaddleSpeed * 0.016f;
+
+    if (mInputManager.isLeftPaddleUp()) {
+    mLeftPaddlePos.y += mPaddleSpeed * deltaTime;
+  }
+  if (mInputManager.isLeftPaddleDown()) {
+    mLeftPaddlePos.y -= mPaddleSpeed * deltaTime;
   }
   mLeftPaddlePos.y = std::clamp(mLeftPaddlePos.y, -3.5f, 3.5f);
 
-    if (GetAsyncKeyState(VK_UP) & 0x8000) {
-    mRightPaddlePos.y += mPaddleSpeed * 0.016f;
+    if (mInputManager.isRightPaddleUp()) {
+    mRightPaddlePos.y += mPaddleSpeed * deltaTime;
   }
-  if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
-    mRightPaddlePos.y -= mPaddleSpeed * 0.016f;
+  if (mInputManager.isRightPaddleDown()) {
+    mRightPaddlePos.y -= mPaddleSpeed * deltaTime;
   }
   mRightPaddlePos.y = std::clamp(mRightPaddlePos.y, -3.5f, 3.5f);
 }

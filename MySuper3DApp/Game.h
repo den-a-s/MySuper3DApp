@@ -1,6 +1,7 @@
 #pragma once
 
 #include "SquareRenderObj.h"
+#include "InputManager.h"
 #include <chrono>
 
 class Game {
@@ -10,13 +11,14 @@ public:
 
 private:
     void init();
-    void handleInput();
+    void handleInput(float deltaTime);
     void Update(float deltaTime);
     void Render(float deltaTime);
     void resetBall();
     void updateWindowTitle();
 
     Renderer mRenderer;
+    InputManager mInputManager;
     SquareRenderObj mLeftPaddle, mRightPaddle, mBall;
 
     DirectX::XMFLOAT3 mLeftPaddlePos, mRightPaddlePos, mBallPos, mBallVel;
