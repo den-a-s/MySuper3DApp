@@ -1,12 +1,67 @@
 #include "Camera.h"
 
 void Camera::init(float aspect) {
+    mMode = CameraMode::FPS;
+    mPosition = {0.0f, 5.0f, -15.0f};
+    mYaw = 0.0f;
+    mPitch = 0.3f;
+    mTheta = 0.0f;
+    mPhi = DirectX::XM_PIDIV4;
+    mRadius = 25.0f;
+    mTarget = {0.0f, 0.0f, 0.0f};
+    mProjMode = ProjMode::Persp;
+    mFovDegrees = 60.0f;
+    mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
     mAspect = aspect;
     recalculateProjection();
     update();
 }
 
+void Camera::initOrbit(float aspect, float phi, float radius) {
+    mMode = CameraMode::Orbit;
+    mTheta = 0.0f;
+    mPhi = phi;
+    mRadius = radius;
+    mTarget = {0.0f, 0.0f, 0.0f};
+    mProjMode = ProjMode::Persp;
+    mFovDegrees = 60.0f;
+    mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
+    mAspect = aspect;
+    recalculateProjection();
+    update();
+}
+
+void Camera::initFPS(const DirectX::XMFLOAT3& position, float yaw, float pitch, float aspect) {
+    mMode = CameraMode::FPS;
+    mPosition = position;
+    mYaw = yaw;
+    mPitch = pitch;
+    mProjMode = ProjMode::Persp;
+    mFovDegrees = 60.0f;
+    mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
+    mAspect = aspect;
+    recalculateProjection();
+    update();
+}
+
+void Camera::initOrtho(float halfWidth, float halfHeight, float aspect) {
+    mOrthoHalfWidth = halfWidth;
+    mOrthoHalfHeight = halfHeight;
+    mMode = CameraMode::Fixed;
+    mPosition = {0.0f, 0.0f, -10.0f};
+    DirectX::XMVECTOR eye = DirectX::XMVectorSet(0.0f, 0.0f, -10.0f, 0.0f);
+    DirectX::XMVECTOR focus = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
+    DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
+    mView = DirectX::XMMatrixLookAtLH(eye, focus, up);
+    mNearZ = 0.1f;
+    mFarZ = 100.0f;
+    mAspect = aspect;
+    mProjMode = ProjMode::Ortho;
+    recalculateProjection();
+}
+
 void Camera::update() {
+    if (mMode == CameraMode::Fixed) return;
     if (mMode == CameraMode::FPS) {
         float cosPitch = cosf(mPitch);
         float sinPitch = sinf(mPitch);
@@ -39,7 +94,19 @@ void Camera::setMode(CameraMode mode) {
 }
 
 void Camera::setProjMode(ProjMode mode) {
+    if (mode == mProjMode) return;
     mProjMode = mode;
+    if (mode == ProjMode::Ortho) {
+        float dist;
+        if (mMode == CameraMode::Orbit) {
+            dist = mRadius;
+        } else {
+            dist = sqrtf(mPosition.x * mPosition.x + mPosition.y * mPosition.y + mPosition.z * mPosition.z);
+        }
+        float half = dist * tanf(DirectX::XMConvertToRadians(mFovDegrees * 0.5f));
+        mOrthoHalfHeight = half;
+        mOrthoHalfWidth = half;
+    }
     recalculateProjection();
 }
 
@@ -99,7 +166,9 @@ void Camera::recalculateProjection() {
         break;
     case ProjMode::Ortho:
         mProjection = DirectX::XMMatrixOrthographicOffCenterLH(
-            -15.0f * mAspect, 15.0f * mAspect, -15.0f, 15.0f, mNearZ, mFarZ);
+            -mOrthoHalfWidth * mAspect, mOrthoHalfWidth * mAspect,
+            -mOrthoHalfHeight, mOrthoHalfHeight,
+            mNearZ, mFarZ);
         break;
     }
 }

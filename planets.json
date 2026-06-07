@@ -56,7 +56,7 @@
             "color": [0.8, 0.3, 0.1, 1.0],
             "planetIsBox": false,
             "moon": {
-                "orbitRadius": 0.28,
+                "orbitRadius": 0.68,
                 "orbitSpeed": 1.8,
                 "rotationSpeed": 5.5,
                 "size": 0.12,

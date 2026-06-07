@@ -1,20 +1,13 @@
 #pragma once
 
-#include "SquareRenderObj.h"
-#include "InputManager.h"
-#include "CelestialBody.h"
+#include "Renderer.h"
 #include <chrono>
-#include <vector>
-#include <string>
+#include <memory>
+#include <optional>
 
-struct PlanetBody {
-    PlanetData data;
-    SquareRenderObj planetObj;
-    SquareRenderObj moonObj;
-    SquareRenderObj orbitObj;
-    bool planetIsBox;
-    bool moonIsBox;
-};
+enum class GameStateType { Menu, Pong, SolarSystem };
+
+class GameState;
 
 class Game {
 public:
@@ -22,25 +15,17 @@ public:
     ~Game();
     void run();
 
+    void switchState(GameStateType type);
+    void requestExit() { mIsExitRequested = true; }
+    bool isExitRequested() const { return mIsExitRequested; }
+    Renderer& getRenderer() { return mRenderer; }
+
 private:
     void init();
-    void reloadPlanets();
-    void handleInput(float deltaTime);
-    void Update(float deltaTime);
-    void Render(float deltaTime);
+    void applySwitchState(GameStateType type);
 
     Renderer mRenderer;
-    InputManager mInputManager;
-
-    SquareRenderObj mSunObj;
-    std::vector<PlanetBody> mPlanets;
-
-    std::string mPlanetsJsonPath = "../planets.json";
-    std::string mReloadStatus;
-
-    bool mMousePressed = false;
-    int mMouseX = 0, mMouseY = 0;
-    bool mCamSwitchHeld = false;
-
+    std::unique_ptr<GameState> mCurrentState;
+    std::optional<GameStateType> mPendingState;
     bool mIsExitRequested = false;
 };

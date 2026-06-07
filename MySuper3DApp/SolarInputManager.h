@@ -1,7 +1,7 @@
 #pragma once
 #include <windows.h>
 
-class InputManager {
+class SolarInputManager {
 public:
     bool isMoveForward() const;
     bool isMoveBackward() const;

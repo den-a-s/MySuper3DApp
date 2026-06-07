@@ -145,7 +145,11 @@
     <ClCompile Include="Camera.cpp" />
     <ClCompile Include="DisplayWin32.cpp" />
     <ClCompile Include="Game.cpp" />
-    <ClCompile Include="InputManager.cpp" />
+    <ClCompile Include="PongInputManager.cpp" />
+    <ClCompile Include="SolarInputManager.cpp" />
+    <ClCompile Include="MenuState.cpp" />
+    <ClCompile Include="PongState.cpp" />
+    <ClCompile Include="SolarSystemState.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SquareRenderObj.cpp" />
     <ClCompile Include="..\Libs\imgui\*.cpp" />
@@ -155,7 +159,12 @@
     <ClInclude Include="CelestialBody.h" />
     <ClInclude Include="DisplayWin32.h" />
     <ClInclude Include="Game.h" />
-    <ClInclude Include="InputManager.h" />
+    <ClInclude Include="GameState.h" />
+    <ClInclude Include="PongInputManager.h" />
+    <ClInclude Include="SolarInputManager.h" />
+    <ClInclude Include="MenuState.h" />
+    <ClInclude Include="PongState.h" />
+    <ClInclude Include="SolarSystemState.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SquareRenderObj.h" />
   </ItemGroup>

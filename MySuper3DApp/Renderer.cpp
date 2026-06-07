@@ -91,7 +91,7 @@ Microsoft::WRL::ComPtr<IDXGIAdapter> chooseAdapterFromConfig() {
 
 Renderer Renderer::create() {
     Renderer renderer;
-    renderer.mDisplay = std::make_shared<DisplayWin32>(L"Planet Simulation", 800, 800);
+    renderer.mDisplay = std::make_shared<DisplayWin32>(L"MyFirst3DApp", 800, 800);
     renderer.mAdapter = chooseAdapterFromConfig();
 
 

@@ -1,7 +1,7 @@
 #pragma once
 #include <directxmath.h>
 
-enum class CameraMode { FPS, Orbit };
+enum class CameraMode { FPS, Orbit, Fixed };
 enum class ProjMode { Persp, Ortho };
 
 class Camera {
@@ -9,6 +9,9 @@ public:
     Camera() = default;
 
     void init(float aspect);
+    void initFPS(const DirectX::XMFLOAT3& position, float yaw, float pitch, float aspect);
+    void initOrtho(float halfWidth, float halfHeight, float aspect);
+    void initOrbit(float aspect, float phi = 0.3f, float radius = 25.0f);
 
     void update();
 
@@ -53,4 +56,6 @@ private:
     float mNearZ = 0.1f;
     float mFarZ = 200.0f;
     float mAspect = 1.0f;
+    float mOrthoHalfWidth = 5.0f;
+    float mOrthoHalfHeight = 4.0f;
 };
