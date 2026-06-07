@@ -51,6 +51,9 @@
     <ClCompile Include="KatamariInputManager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
+    <ClCompile Include="KatamariGameState.cpp">
+      <Filter>Исходные файлы</Filter>
+    </ClCompile>
     <ClCompile Include="ObjLoader.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
@@ -99,6 +102,9 @@
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="KatamariInputManager.h">
+      <Filter>Файлы заголовков</Filter>
+    </ClInclude>
+    <ClInclude Include="KatamariGameState.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="ObjLoader.h">

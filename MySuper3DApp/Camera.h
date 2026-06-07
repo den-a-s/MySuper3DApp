@@ -31,6 +31,7 @@ public:
     void zoomOrtho(float delta);
 
     void setAspect(float aspect);
+    void setTarget(const DirectX::XMFLOAT3& target) { mTarget = target; }
 
     DirectX::XMMATRIX getView() const { return mView; }
     DirectX::XMMATRIX getProjection() const { return mProjection; }

@@ -4,6 +4,7 @@
 #include "PongState.h"
 #include "SolarSystemState.h"
 #include "KatamariAtHomeState.h"
+#include "KatamariGameState.h"
 #include "imgui.h"
 #include "imgui_impl_win32.h"
 #include "imgui_impl_dx11.h"
@@ -77,6 +78,9 @@ void Game::applySwitchState(GameStateType type) {
             break;
         case GameStateType::KatamariAtHome:
             mCurrentState = std::make_unique<KatamariAtHomeState>(*this);
+            break;
+        case GameStateType::KatamariGame:
+            mCurrentState = std::make_unique<KatamariGameState>(*this);
             break;
     }
 

@@ -46,7 +46,7 @@ void MenuState::render(float deltaTime) {
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
-    ImVec2 windowSize(340, 380);
+    ImVec2 windowSize(340, 460);
     ImGui::SetNextWindowSize(windowSize, ImGuiCond_Always);
     ImGui::SetNextWindowPos(
         ImVec2((renderer.mDisplay->getScreenWidth() - windowSize.x) * 0.5f,
@@ -74,6 +74,12 @@ void MenuState::render(float deltaTime) {
 
     if (ImGui::Button("Katamari At Home", ImVec2(bw, 60))) {
         mGame.switchState(GameStateType::KatamariAtHome);
+    }
+
+    ImGui::Spacing();
+
+    if (ImGui::Button("Katamari Game", ImVec2(bw, 60))) {
+        mGame.switchState(GameStateType::KatamariGame);
     }
 
     ImGui::Spacing();

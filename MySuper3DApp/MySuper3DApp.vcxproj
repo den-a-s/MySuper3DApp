@@ -154,6 +154,7 @@
     <ClCompile Include="SquareRenderObj.cpp" />
     <ClCompile Include="KatamariAtHomeState.cpp" />
     <ClCompile Include="KatamariInputManager.cpp" />
+    <ClCompile Include="KatamariGameState.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="TexturedRenderObj.cpp" />
     <ClCompile Include="..\Libs\imgui\*.cpp" />
@@ -173,6 +174,7 @@
     <ClInclude Include="SquareRenderObj.h" />
     <ClInclude Include="KatamariAtHomeState.h" />
     <ClInclude Include="KatamariInputManager.h" />
+    <ClInclude Include="KatamariGameState.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="TexturedRenderObj.h" />
   </ItemGroup>

@@ -36,6 +36,7 @@
             "multiplier": 0.5299999713897705,
             "name": "Metal Ball",
             "objPath": "../Objects/Geometry/Decorative_Metal_Ball.obj",
+            "isBall": true,
             "position": [
                 4.0,
                 0.0,
