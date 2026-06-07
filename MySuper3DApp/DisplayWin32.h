@@ -10,6 +10,9 @@ public:
     HWND getHandlerWindow();
     int getScreenHeight();
     int getScreenWidth();
+    void resize(int width, int height);
+    void setFullscreen(bool fullscreen);
+    bool isFullscreen() const;
 
 private:
     std::wstring mApplicationName;
@@ -18,6 +21,8 @@ private:
     LONG mScreenWidth;
     LONG mScreenHeight;
     HWND mHWnd;
+    LONG mWindowStyle;
+    RECT mWindowedRect;
 };
 
 LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam);

@@ -19,6 +19,9 @@ public:
     void requestExit() { mIsExitRequested = true; }
     bool isExitRequested() const { return mIsExitRequested; }
     Renderer& getRenderer() { return mRenderer; }
+    void setWindowSize(int width, int height);
+    void setFullscreen(bool fullscreen);
+    bool isFullscreen() const { return mIsFullscreen; }
 
 private:
     void init();
@@ -28,4 +31,5 @@ private:
     std::unique_ptr<GameState> mCurrentState;
     std::optional<GameStateType> mPendingState;
     bool mIsExitRequested = false;
+    bool mIsFullscreen = false;
 };

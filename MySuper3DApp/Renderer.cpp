@@ -202,3 +202,39 @@ void Renderer::endFrame() {
     mContext->OMSetRenderTargets(1, &nullRTV, nullptr);
     mSwapChain->Present(1, 0);
 }
+
+void Renderer::resize(int width, int height) {
+    mContext->OMSetRenderTargets(0, nullptr, nullptr);
+    mRTV.Reset();
+    mDepthStencilView.Reset();
+
+    HRESULT hr = mSwapChain->ResizeBuffers(0, width, height, DXGI_FORMAT_UNKNOWN, 0);
+    if (FAILED(hr)) {
+        throw std::runtime_error(std::format("FAILED ResizeBuffers code {}", hr));
+    }
+
+    ID3D11Texture2D* backTex;
+    hr = mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backTex));
+    if (FAILED(hr)) throw std::runtime_error("FAILED GetBuffer");
+    hr = mDevice->CreateRenderTargetView(backTex, nullptr, mRTV.GetAddressOf());
+    backTex->Release();
+    if (FAILED(hr)) throw std::runtime_error("FAILED CreateRenderTargetView");
+
+    D3D11_TEXTURE2D_DESC depthDesc = {};
+    depthDesc.Width = width;
+    depthDesc.Height = height;
+    depthDesc.MipLevels = 1;
+    depthDesc.ArraySize = 1;
+    depthDesc.Format = DXGI_FORMAT_D32_FLOAT;
+    depthDesc.SampleDesc.Count = 1;
+    depthDesc.SampleDesc.Quality = 0;
+    depthDesc.Usage = D3D11_USAGE_DEFAULT;
+    depthDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+
+    ID3D11Texture2D* depthBuffer = nullptr;
+    hr = mDevice->CreateTexture2D(&depthDesc, nullptr, &depthBuffer);
+    if (FAILED(hr)) throw std::runtime_error("FAILED CreateDepthStencilTexture");
+    hr = mDevice->CreateDepthStencilView(depthBuffer, nullptr, mDepthStencilView.GetAddressOf());
+    depthBuffer->Release();
+    if (FAILED(hr)) throw std::runtime_error("FAILED CreateDepthStencilView");
+}

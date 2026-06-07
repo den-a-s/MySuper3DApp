@@ -15,6 +15,7 @@ public:
 
     void beginFrame(float* clearColor);
     void endFrame();
+    void resize(int width, int height);
 
     void initCamera(float aspect);
 

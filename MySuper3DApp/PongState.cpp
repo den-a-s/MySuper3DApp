@@ -44,9 +44,12 @@ void PongState::init() {
 
 void PongState::onEnter() {
     auto& renderer = mGame.getRenderer();
-    auto& cam = renderer.getCamera();
     float aspect = (float)renderer.mDisplay->getScreenWidth() /
                    (float)renderer.mDisplay->getScreenHeight();
+    mFieldEdgeX = 4.5f * aspect;
+    mLeftPaddlePos.x = -3.5f * aspect;
+    mRightPaddlePos.x = 3.5f * aspect;
+    auto& cam = renderer.getCamera();
     cam.initOrtho(4.5f, 4.0f, aspect);
 }
 
@@ -72,7 +75,8 @@ void PongState::handleInput(float deltaTime) {
     if (mInput.isLeftPaddleDown()) {
         mLeftPaddlePos.y -= mPaddleSpeed * deltaTime;
     }
-    mLeftPaddlePos.y = std::clamp(mLeftPaddlePos.y, -3.0f, 3.0f);
+    float paddleClampY = 4.0f - mPaddleScale.y * 0.5f;
+    mLeftPaddlePos.y = std::clamp(mLeftPaddlePos.y, -paddleClampY, paddleClampY);
 
     if (mInput.isRightPaddleUp()) {
         mRightPaddlePos.y += mPaddleSpeed * deltaTime;
@@ -80,7 +84,7 @@ void PongState::handleInput(float deltaTime) {
     if (mInput.isRightPaddleDown()) {
         mRightPaddlePos.y -= mPaddleSpeed * deltaTime;
     }
-    mRightPaddlePos.y = std::clamp(mRightPaddlePos.y, -3.0f, 3.0f);
+    mRightPaddlePos.y = std::clamp(mRightPaddlePos.y, -paddleClampY, paddleClampY);
 }
 
 void PongState::update(float deltaTime) {
@@ -94,14 +98,14 @@ void PongState::update(float deltaTime) {
 
     DirectX::BoundingBox topWall;
     topWall.Center = DirectX::XMFLOAT3(0.0f, 4.0f, 0.0f);
-    topWall.Extents = DirectX::XMFLOAT3(4.5f, 0.1f, 1.0f);
+    topWall.Extents = DirectX::XMFLOAT3(mFieldEdgeX, 0.1f, 1.0f);
     if (ballBox.Intersects(topWall)) {
         mBallVel.y = -mBallVel.y;
     }
 
     DirectX::BoundingBox bottomWall;
     bottomWall.Center = DirectX::XMFLOAT3(0.0f, -4.0f, 0.0f);
-    bottomWall.Extents = DirectX::XMFLOAT3(4.5f, 0.1f, 1.0f);
+    bottomWall.Extents = DirectX::XMFLOAT3(mFieldEdgeX, 0.1f, 1.0f);
     if (ballBox.Intersects(bottomWall)) {
         mBallVel.y = -mBallVel.y;
     }
@@ -133,7 +137,7 @@ void PongState::update(float deltaTime) {
     }
 
     DirectX::BoundingBox leftGoal;
-    leftGoal.Center = DirectX::XMFLOAT3(-4.5f, 0.0f, 0.0f);
+    leftGoal.Center = DirectX::XMFLOAT3(-mFieldEdgeX, 0.0f, 0.0f);
     leftGoal.Extents = DirectX::XMFLOAT3(0.2f, 4.0f, 1.0f);
     if (ballBox.Intersects(leftGoal)) {
         mScoreRight++;
@@ -141,7 +145,7 @@ void PongState::update(float deltaTime) {
     }
 
     DirectX::BoundingBox rightGoal;
-    rightGoal.Center = DirectX::XMFLOAT3(4.5f, 0.0f, 0.0f);
+    rightGoal.Center = DirectX::XMFLOAT3(mFieldEdgeX, 0.0f, 0.0f);
     rightGoal.Extents = DirectX::XMFLOAT3(0.2f, 4.0f, 1.0f);
     if (ballBox.Intersects(rightGoal)) {
         mScoreLeft++;
@@ -208,7 +212,7 @@ void PongState::updateProjectiles(float deltaTime) {
             p.active = false;
         }
 
-        if (p.position.x < -4.5f || p.position.x > 4.5f ||
+        if (p.position.x < -mFieldEdgeX || p.position.x > mFieldEdgeX ||
             p.position.y < -4.0f || p.position.y > 4.0f) {
             p.active = false;
         }

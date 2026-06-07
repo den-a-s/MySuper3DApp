@@ -45,4 +45,5 @@ private:
     float mTowerFireInterval = 0.35f;
     float mTowerRange = 4.0f;
     float mBulletSpeed = 12.0f;
+    float mFieldEdgeX = 4.5f;
 };

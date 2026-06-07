@@ -79,3 +79,18 @@ void Game::applySwitchState(GameStateType type) {
     mCurrentState->init();
     mCurrentState->onEnter();
 }
+
+void Game::setWindowSize(int width, int height) {
+    if (mIsFullscreen) {
+        setFullscreen(false);
+    }
+    mRenderer.mDisplay->resize(width, height);
+    mRenderer.resize(width, height);
+}
+
+void Game::setFullscreen(bool fullscreen) {
+    mIsFullscreen = fullscreen;
+    mRenderer.mDisplay->setFullscreen(fullscreen);
+    mRenderer.resize(mRenderer.mDisplay->getScreenWidth(),
+                     mRenderer.mDisplay->getScreenHeight());
+}

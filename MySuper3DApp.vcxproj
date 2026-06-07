@@ -19,17 +19,36 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Libs\imgui\imgui.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_draw.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_tables.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_widgets.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Libs\imgui\imgui_impl_dx11.cpp" />
     <ClCompile Include="MySuper3DApp.cpp" />
+    <ClCompile Include="MySuper3DApp\Camera.cpp" />
     <ClCompile Include="MySuper3DApp\DisplayWin32.cpp" />
     <ClCompile Include="MySuper3DApp\Game.cpp" />
+    <ClCompile Include="MySuper3DApp\MenuState.cpp" />
+    <ClCompile Include="MySuper3DApp\PongInputManager.cpp" />
+    <ClCompile Include="MySuper3DApp\PongState.cpp" />
     <ClCompile Include="MySuper3DApp\Renderer.cpp" />
+    <ClCompile Include="MySuper3DApp\SolarInputManager.cpp" />
+    <ClCompile Include="MySuper3DApp\SolarSystemState.cpp" />
     <ClCompile Include="MySuper3DApp\SquareRenderObj.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="MySuper3DApp\Camera.h" />
     <ClInclude Include="MySuper3DApp\CelestialBody.h" />
     <ClInclude Include="MySuper3DApp\DisplayWin32.h" />
     <ClInclude Include="MySuper3DApp\Game.h" />
+    <ClInclude Include="MySuper3DApp\GameState.h" />
+    <ClInclude Include="MySuper3DApp\MenuState.h" />
+    <ClInclude Include="MySuper3DApp\PongInputManager.h" />
+    <ClInclude Include="MySuper3DApp\PongState.h" />
     <ClInclude Include="MySuper3DApp\Renderer.h" />
+    <ClInclude Include="MySuper3DApp\SolarInputManager.h" />
+    <ClInclude Include="MySuper3DApp\SolarSystemState.h" />
     <ClInclude Include="MySuper3DApp\SquareRenderObj.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -117,6 +136,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)Libs\imgui;$(ProjectDir)Libs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
