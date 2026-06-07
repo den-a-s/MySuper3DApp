@@ -71,6 +71,12 @@ void MenuState::render(float deltaTime) {
     }
 
     ImGui::Spacing();
+
+    if (ImGui::Button("Katamari At Home", ImVec2(bw, 60))) {
+        mGame.switchState(GameStateType::KatamariAtHome);
+    }
+
+    ImGui::Spacing();
     ImGui::Separator();
     ImGui::Spacing();
 

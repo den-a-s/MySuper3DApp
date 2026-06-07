@@ -1,0 +1,84 @@
+{
+    "objects": [
+        {
+            "multiplier": 400.0,
+            "name": "Pen",
+            "objPath": "../Objects/Geometry/pen.obj",
+            "position": [
+                -22.700000762939453,
+                0.0,
+                3.9000000953674316
+            ],
+            "rotation": [
+                0.0,
+                -3.1415927410125732,
+                0.0
+            ],
+            "scale": 1.0
+        },
+        {
+            "multiplier": 0.5299999713897705,
+            "name": "Desk Chair",
+            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "position": [
+                -29.399999618530273,
+                0.0,
+                78.5999984741211
+            ],
+            "rotation": [
+                0.0,
+                -2.879793405532837,
+                0.0
+            ],
+            "scale": 0.800000011920929
+        },
+        {
+            "multiplier": 0.5299999713897705,
+            "name": "Metal Ball",
+            "objPath": "../Objects/Geometry/Decorative_Metal_Ball.obj",
+            "position": [
+                4.0,
+                0.0,
+                8.600000381469727
+            ],
+            "rotation": [
+                0.0,
+                -1.7976891994476318,
+                0.0
+            ],
+            "scale": 1.0
+        },
+        {
+            "multiplier": 0.23000000417232513,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                -39.20000076293945,
+                0.0,
+                -13.5
+            ],
+            "rotation": [
+                0.0,
+                1.3439035415649414,
+                0.0
+            ],
+            "scale": 1.0
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                -45.20000076293945,
+                0.0,
+                13.699999809265137
+            ],
+            "rotation": [
+                0.0,
+                0.6283185482025146,
+                0.0
+            ],
+            "scale": 1.0
+        }
+    ]
+}
