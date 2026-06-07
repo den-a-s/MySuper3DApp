@@ -140,6 +140,17 @@ void Camera::moveFPS(float forward, float right, float up) {
     DirectX::XMStoreFloat3(&mPosition, pos);
 }
 
+void Camera::moveInPlane(float forward, float right) {
+    float cosYaw = cosf(mYaw);
+    float sinYaw = sinf(mYaw);
+    DirectX::XMVECTOR fwd = DirectX::XMVectorSet(sinYaw, 0.0f, cosYaw, 0.0f);
+    DirectX::XMVECTOR rgt = DirectX::XMVectorSet(cosYaw, 0.0f, -sinYaw, 0.0f);
+    DirectX::XMVECTOR pos = DirectX::XMLoadFloat3(&mPosition);
+    pos = DirectX::XMVectorAdd(pos, DirectX::XMVectorScale(fwd, forward));
+    pos = DirectX::XMVectorAdd(pos, DirectX::XMVectorScale(rgt, right));
+    DirectX::XMStoreFloat3(&mPosition, pos);
+}
+
 void Camera::rotateOrbit(float dTheta, float dPhi) {
     mTheta += dTheta;
     mPhi += dPhi;
@@ -151,6 +162,14 @@ void Camera::zoomOrbit(float delta) {
     mRadius += delta;
     if (mRadius < 2.0f) mRadius = 2.0f;
     if (mRadius > 80.0f) mRadius = 80.0f;
+}
+
+void Camera::zoomOrtho(float delta) {
+    mOrthoHalfHeight += delta;
+    mOrthoHalfWidth += delta;
+    if (mOrthoHalfHeight < 0.1f) mOrthoHalfHeight = 0.1f;
+    if (mOrthoHalfWidth < 0.1f) mOrthoHalfWidth = 0.1f;
+    recalculateProjection();
 }
 
 void Camera::setAspect(float aspect) {

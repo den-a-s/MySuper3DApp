@@ -24,9 +24,11 @@ public:
 
     void rotateFPS(float dYaw, float dPitch);
     void moveFPS(float forward, float right, float up);
+    void moveInPlane(float forward, float right);
 
     void rotateOrbit(float dTheta, float dPhi);
     void zoomOrbit(float delta);
+    void zoomOrtho(float delta);
 
     void setAspect(float aspect);
 

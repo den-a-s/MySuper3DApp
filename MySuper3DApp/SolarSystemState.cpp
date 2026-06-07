@@ -94,15 +94,26 @@ void SolarSystemState::handleInput(float deltaTime) {
     auto& cam = mGame.getRenderer().getCamera();
 
     if (cam.mMode == CameraMode::FPS) {
-        float forward = 0.0f, right = 0.0f, up = 0.0f;
-        if (mInput.isMoveForward())  forward += moveSpeed;
-        if (mInput.isMoveBackward()) forward -= moveSpeed;
-        if (mInput.isMoveRight())    right += moveSpeed;
-        if (mInput.isMoveLeft())     right -= moveSpeed;
-        if (mInput.isMoveUp())       up += moveSpeed;
-        if (mInput.isMoveDown())     up -= moveSpeed;
-        if (forward != 0.0f || right != 0.0f || up != 0.0f) {
-            cam.moveFPS(forward, right, up);
+        if (cam.getProjMode() == ProjMode::Ortho) {
+            float fwd = 0.0f, rgt = 0.0f;
+            if (mInput.isMoveForward())  fwd += moveSpeed;
+            if (mInput.isMoveBackward()) fwd -= moveSpeed;
+            if (mInput.isMoveRight())    rgt += moveSpeed;
+            if (mInput.isMoveLeft())     rgt -= moveSpeed;
+            if (fwd != 0.0f || rgt != 0.0f) cam.moveInPlane(fwd, rgt);
+            if (mInput.isMoveUp())       cam.zoomOrtho(-moveSpeed * 0.5f);
+            if (mInput.isMoveDown())     cam.zoomOrtho( moveSpeed * 0.5f);
+        } else {
+            float forward = 0.0f, right = 0.0f, up = 0.0f;
+            if (mInput.isMoveForward())  forward += moveSpeed;
+            if (mInput.isMoveBackward()) forward -= moveSpeed;
+            if (mInput.isMoveRight())    right += moveSpeed;
+            if (mInput.isMoveLeft())     right -= moveSpeed;
+            if (mInput.isMoveUp())       up += moveSpeed;
+            if (mInput.isMoveDown())     up -= moveSpeed;
+            if (forward != 0.0f || right != 0.0f || up != 0.0f) {
+                cam.moveFPS(forward, right, up);
+            }
         }
     } else {
         if (mInput.isMoveUp())       cam.zoomOrbit(-moveSpeed * 2);
@@ -266,8 +277,8 @@ void SolarSystemState::render(float deltaTime) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {
-                ImGui::TextUnformatted("WASD       - Move camera");
-                ImGui::TextUnformatted("Space/Shift - Move up/down");
+                ImGui::TextUnformatted("WASD       - Move/pan camera");
+                ImGui::TextUnformatted("Space/Shift - Zoom (Ortho) / Move up/down (Persp)");
                 ImGui::TextUnformatted("C          - Switch camera mode");
                 ImGui::Separator();
                 ImGui::TextUnformatted("LMB + Mouse drag - Rotate camera");
@@ -283,6 +294,16 @@ void SolarSystemState::render(float deltaTime) {
             }
             ImGui::EndMainMenuBar();
         }
+    }
+
+    {
+        ImGui::Begin("FPS", nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground |
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+        ImGui::SetWindowPos(ImVec2(10, 24), ImGuiCond_Always);
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.0f", 1.0f / deltaTime);
+        ImGui::End();
     }
 
     ImGui::Render();

@@ -307,6 +307,16 @@ void PongState::render(float deltaTime) {
         ImGui::End();
     }
 
+    {
+        ImGui::Begin("FPS", nullptr,
+                     ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoBackground |
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove);
+        ImGui::SetWindowPos(ImVec2(10, 60), ImGuiCond_Always);
+        ImGui::SetWindowFontScale(1.0f);
+        ImGui::TextColored(ImVec4(0, 1, 0, 1), "FPS: %.0f", 1.0f / deltaTime);
+        ImGui::End();
+    }
+
     ImGui::Render();
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 
