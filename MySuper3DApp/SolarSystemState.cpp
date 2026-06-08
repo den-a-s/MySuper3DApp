@@ -149,7 +149,7 @@ void SolarSystemState::reloadPlanets() {
         return;
     }
 
-    auto white = DirectX::XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f);
+    auto white = DirectX::XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
     auto& renderer = mGame.getRenderer();
 
     mPlanets.clear();
@@ -200,8 +200,13 @@ void SolarSystemState::reloadPlanets() {
             body.moonObj = SquareRenderObj::create(renderer, L"../Shaders/MyVeryFirstShader.hlsl", mesh);
         }
 
-        auto ringMesh = createRingMeshData(white, 0.98f, 1.02f, 48);
-        body.orbitObj = SquareRenderObj::create(renderer, L"../Shaders/MyVeryFirstShader.hlsl", ringMesh);
+        auto orbitMesh = createCircleLineMeshData(white, 64);
+        body.orbitObj = SquareRenderObj::create(renderer, L"../Shaders/MyVeryFirstShader.hlsl", orbitMesh);
+        body.orbitObj.topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
+
+        auto moonOrbitMesh = createCircleLineMeshData(white, 48);
+        body.moonOrbitObj = SquareRenderObj::create(renderer, L"../Shaders/MyVeryFirstShader.hlsl", moonOrbitMesh);
+        body.moonOrbitObj.topology = D3D11_PRIMITIVE_TOPOLOGY_LINESTRIP;
 
         mPlanets.push_back(std::move(body));
     }
@@ -236,6 +241,10 @@ void SolarSystemState::render(float deltaTime) {
                                          DirectX::XMMatrixRotationY(body.data.rotationAngle) *
                                          DirectX::XMMatrixTranslation(px, 0.0f, pz);
         draw(body.planetObj, planetWorld, view, proj, renderer);
+
+        DirectX::XMMATRIX moonOrbitWorld = DirectX::XMMatrixScaling(body.data.moon.orbitRadius, 1.0f, body.data.moon.orbitRadius) *
+                                            DirectX::XMMatrixTranslation(px, 0.0f, pz);
+        draw(body.moonOrbitObj, moonOrbitWorld, view, proj, renderer);
 
         float mx = px + body.data.moon.orbitRadius * cosf(body.data.moon.angle);
         float mz = pz + body.data.moon.orbitRadius * sinf(body.data.moon.angle);

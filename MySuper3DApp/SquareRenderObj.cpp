@@ -119,6 +119,21 @@ MeshData createBoxMeshData(const DirectX::XMFLOAT4& color, float width, float he
     return md;
 }
 
+MeshData createCircleLineMeshData(const DirectX::XMFLOAT4& color, int segments) {
+    MeshData md;
+    for (int s = 0; s <= segments; ++s) {
+        float theta = 2.0f * DirectX::XM_PI * static_cast<float>(s) / static_cast<float>(segments);
+        float x = cosf(theta);
+        float z = sinf(theta);
+        md.vertices.push_back(DirectX::XMFLOAT4(x, 0.0f, z, 1.0f));
+        md.vertices.push_back(color);
+        md.indices.push_back(s);
+    }
+    md.vertexCount = segments + 1;
+    md.indexCount = segments + 1;
+    return md;
+}
+
 MeshData createRingMeshData(const DirectX::XMFLOAT4& color, float innerRadius, float outerRadius, int segments) {
     MeshData md;
     for (int s = 0; s <= segments; ++s) {

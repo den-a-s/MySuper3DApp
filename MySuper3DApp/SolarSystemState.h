@@ -12,6 +12,7 @@ struct PlanetBody {
     SquareRenderObj planetObj;
     SquareRenderObj moonObj;
     SquareRenderObj orbitObj;
+    SquareRenderObj moonOrbitObj;
     bool planetIsBox = false;
     bool moonIsBox = false;
 };
