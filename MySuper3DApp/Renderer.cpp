@@ -172,6 +172,27 @@ Renderer Renderer::create() {
 
     backTex->Release();
 
+    {
+        uint8_t whitePixel[4] = {255, 255, 255, 255};
+        D3D11_TEXTURE2D_DESC td = {};
+        td.Width = 1;
+        td.Height = 1;
+        td.MipLevels = 1;
+        td.ArraySize = 1;
+        td.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        td.SampleDesc.Count = 1;
+        td.Usage = D3D11_USAGE_DEFAULT;
+        td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        D3D11_SUBRESOURCE_DATA sd = {};
+        sd.pSysMem = whitePixel;
+        sd.SysMemPitch = 4;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> whiteTex;
+        if (SUCCEEDED(renderer.mDevice->CreateTexture2D(&td, &sd, whiteTex.GetAddressOf()))) {
+            renderer.mDevice->CreateShaderResourceView(whiteTex.Get(), nullptr,
+                renderer.mWhiteTextureSRV.GetAddressOf());
+        }
+    }
+
     return renderer;
 }
 
@@ -180,7 +201,7 @@ void Renderer::initCamera(float aspect) {
 }
 
 void Renderer::beginFrame(float* clearColor) {
-    mContext->ClearState();
+    mContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     mContext->OMSetRenderTargets(1, mRTV.GetAddressOf(), mDepthStencilView.Get());
     mContext->ClearRenderTargetView(mRTV.Get(), clearColor);
     mContext->ClearDepthStencilView(mDepthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);

@@ -17,24 +17,40 @@ static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> loadTextureFromFile(
     IWICImagingFactory* factory = nullptr;
     HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr,
         CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory));
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) {
+        OutputDebugStringA(("WIC factory creation failed for: " + filepath + "\n").c_str());
+        return nullptr;
+    }
 
     IWICBitmapDecoder* decoder = nullptr;
     hr = factory->CreateDecoderFromFilename(wpath.c_str(), nullptr,
         GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
-    if (FAILED(hr)) { factory->Release(); return nullptr; }
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to open texture file: " + filepath + "\n").c_str());
+        factory->Release();
+        return nullptr;
+    }
 
     IWICBitmapFrameDecode* frame = nullptr;
     hr = decoder->GetFrame(0, &frame);
-    if (FAILED(hr)) { decoder->Release(); factory->Release(); return nullptr; }
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to get frame from: " + filepath + "\n").c_str());
+        decoder->Release(); factory->Release();
+        return nullptr;
+    }
 
     IWICFormatConverter* converter = nullptr;
     hr = factory->CreateFormatConverter(&converter);
-    if (FAILED(hr)) { frame->Release(); decoder->Release(); factory->Release(); return nullptr; }
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to create format converter for: " + filepath + "\n").c_str());
+        frame->Release(); decoder->Release(); factory->Release();
+        return nullptr;
+    }
 
     hr = converter->Initialize(frame, GUID_WICPixelFormat32bppRGBA,
         WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom);
     if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to convert format for: " + filepath + "\n").c_str());
         converter->Release(); frame->Release(); decoder->Release(); factory->Release();
         return nullptr;
     }
@@ -45,7 +61,10 @@ static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> loadTextureFromFile(
     std::vector<uint8_t> pixels(w * h * 4);
     hr = converter->CopyPixels(nullptr, w * 4, (UINT)pixels.size(), pixels.data());
     converter->Release(); frame->Release(); decoder->Release(); factory->Release();
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to copy pixels from: " + filepath + "\n").c_str());
+        return nullptr;
+    }
 
     D3D11_TEXTURE2D_DESC texDesc = {};
     texDesc.Width = w;
@@ -63,11 +82,17 @@ static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> loadTextureFromFile(
 
     Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
     hr = device->CreateTexture2D(&texDesc, &initData, tex.GetAddressOf());
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to create D3D11 texture from: " + filepath + "\n").c_str());
+        return nullptr;
+    }
 
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
     hr = device->CreateShaderResourceView(tex.Get(), nullptr, srv.GetAddressOf());
-    if (FAILED(hr)) return nullptr;
+    if (FAILED(hr)) {
+        OutputDebugStringA(("Failed to create SRV from: " + filepath + "\n").c_str());
+        return nullptr;
+    }
 
     return srv;
 }
@@ -189,6 +214,9 @@ TexturedRenderObj TexturedRenderObj::create(
             obj.mAlbedoSRV = loadTextureFromFile(r.mDevice.Get(), fallback);
         }
     }
+    if (!obj.mAlbedoSRV)
+        obj.mAlbedoSRV = r.mWhiteTextureSRV;
+
     if (!material.normalPath.empty()) {
         obj.mNormalSRV = loadTextureFromFile(r.mDevice.Get(), material.normalPath);
         if (!obj.mNormalSRV) {
@@ -196,6 +224,8 @@ TexturedRenderObj TexturedRenderObj::create(
             obj.mNormalSRV = loadTextureFromFile(r.mDevice.Get(), fallback);
         }
     }
+    if (!obj.mNormalSRV)
+        obj.mNormalSRV = r.mWhiteTextureSRV;
 
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
