@@ -12,7 +12,7 @@ newmtl end_table
 	Kd 0.5880 0.5880 0.5880
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka ../Textures/end_table_Albedo.png
-	map_Kd ../Textures/end_table_Albedo.png
-	map_bump ../Textures/end_table_Normal.png
-	bump ../Textures/end_table_Normal.png
+	map_Ka ../Textures/end_table_Albedo.dds
+	map_Kd ../Textures/end_table_Albedo.dds
+	map_bump ../Textures/end_table_Normal.dds
+	bump ../Textures/end_table_Normal.dds

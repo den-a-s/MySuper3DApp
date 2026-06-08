@@ -1,96 +1,34 @@
 #include "TexturedRenderObj.h"
+#include "DirectXTex/DDSTextureLoader11.h"
 #include <d3dcompiler.h>
-#include <wincodec.h>
 #include <windows.h>
 #include <stdexcept>
 #include <format>
 
-#pragma comment(lib, "windowscodecs.lib")
+static std::wstring toWide(const std::string& s) {
+    if (s.empty()) return {};
+    int len = MultiByteToWideChar(CP_UTF8, 0, s.c_str(), (int)s.size(), nullptr, 0);
+    std::wstring w(len, 0);
+    MultiByteToWideChar(CP_UTF8, 0, s.c_str(), (int)s.size(), &w[0], len);
+    return w;
+}
 
 static Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> loadTextureFromFile(
     ID3D11Device* device, const std::string& filepath)
 {
     if (filepath.empty()) return nullptr;
 
-    std::wstring wpath(filepath.begin(), filepath.end());
+    std::wstring wpath = toWide(filepath);
 
-    IWICImagingFactory* factory = nullptr;
-    HRESULT hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr,
-        CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory));
-    if (FAILED(hr)) {
-        OutputDebugStringA(("WIC factory creation failed for: " + filepath + "\n").c_str());
-        return nullptr;
-    }
-
-    IWICBitmapDecoder* decoder = nullptr;
-    hr = factory->CreateDecoderFromFilename(wpath.c_str(), nullptr,
-        GENERIC_READ, WICDecodeMetadataCacheOnLoad, &decoder);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to open texture file: " + filepath + "\n").c_str());
-        factory->Release();
-        return nullptr;
-    }
-
-    IWICBitmapFrameDecode* frame = nullptr;
-    hr = decoder->GetFrame(0, &frame);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to get frame from: " + filepath + "\n").c_str());
-        decoder->Release(); factory->Release();
-        return nullptr;
-    }
-
-    IWICFormatConverter* converter = nullptr;
-    hr = factory->CreateFormatConverter(&converter);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to create format converter for: " + filepath + "\n").c_str());
-        frame->Release(); decoder->Release(); factory->Release();
-        return nullptr;
-    }
-
-    hr = converter->Initialize(frame, GUID_WICPixelFormat32bppRGBA,
-        WICBitmapDitherTypeNone, nullptr, 0.0f, WICBitmapPaletteTypeCustom);
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to convert format for: " + filepath + "\n").c_str());
-        converter->Release(); frame->Release(); decoder->Release(); factory->Release();
-        return nullptr;
-    }
-
-    UINT w, h;
-    converter->GetSize(&w, &h);
-
-    std::vector<uint8_t> pixels(w * h * 4);
-    hr = converter->CopyPixels(nullptr, w * 4, (UINT)pixels.size(), pixels.data());
-    converter->Release(); frame->Release(); decoder->Release(); factory->Release();
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to copy pixels from: " + filepath + "\n").c_str());
-        return nullptr;
-    }
-
-    D3D11_TEXTURE2D_DESC texDesc = {};
-    texDesc.Width = w;
-    texDesc.Height = h;
-    texDesc.MipLevels = 1;
-    texDesc.ArraySize = 1;
-    texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    texDesc.SampleDesc.Count = 1;
-    texDesc.Usage = D3D11_USAGE_DEFAULT;
-    texDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-
-    D3D11_SUBRESOURCE_DATA initData = {};
-    initData.pSysMem = pixels.data();
-    initData.SysMemPitch = w * 4;
-
-    Microsoft::WRL::ComPtr<ID3D11Texture2D> tex;
-    hr = device->CreateTexture2D(&texDesc, &initData, tex.GetAddressOf());
-    if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to create D3D11 texture from: " + filepath + "\n").c_str());
-        return nullptr;
-    }
-
+    Microsoft::WRL::ComPtr<ID3D11Resource> texture;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srv;
-    hr = device->CreateShaderResourceView(tex.Get(), nullptr, srv.GetAddressOf());
+    HRESULT hr = DirectX::CreateDDSTextureFromFile(
+        device, wpath.c_str(),
+        texture.GetAddressOf(),
+        srv.GetAddressOf());
+
     if (FAILED(hr)) {
-        OutputDebugStringA(("Failed to create SRV from: " + filepath + "\n").c_str());
+        OutputDebugStringA(("Failed to load DDS texture: " + filepath + "\n").c_str());
         return nullptr;
     }
 

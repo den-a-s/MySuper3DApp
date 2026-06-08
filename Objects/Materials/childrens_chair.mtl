@@ -12,7 +12,7 @@ newmtl childrens_chair
 	Kd 0.5880 0.5880 0.5880
 	Ks 0.0000 0.0000 0.0000
 	Ke 0.0000 0.0000 0.0000
-	map_Ka ../Textures/childrens_chair_Albedo.png
-	map_Kd ../Textures/childrens_chair_Albedo.png
-	map_bump ../Textures/childrens_chair_Normal.png
-	bump ../Textures/childrens_chair_Normal.png
+	map_Ka ../Textures/childrens_chair_Albedo.dds
+	map_Kd ../Textures/childrens_chair_Albedo.dds
+	map_bump ../Textures/childrens_chair_Normal.dds
+	bump ../Textures/childrens_chair_Normal.dds

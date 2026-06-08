@@ -157,6 +157,7 @@
     <ClCompile Include="KatamariGameState.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="TexturedRenderObj.cpp" />
+    <ClCompile Include="DirectXTex\DDSTextureLoader11.cpp" />
     <ClCompile Include="..\Libs\imgui\*.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -177,6 +178,7 @@
     <ClInclude Include="KatamariGameState.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="TexturedRenderObj.h" />
+    <ClInclude Include="DirectXTex\DDSTextureLoader11.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Target Name="CopyAdaptersJson" AfterTargets="Build" Inputs="..\adapters.json" Outputs="$(OutDir)adapters.json">
