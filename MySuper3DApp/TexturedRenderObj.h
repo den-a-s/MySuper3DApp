@@ -53,6 +53,13 @@ struct alignas(16) ObjectConstantBuffer {
     DirectX::XMFLOAT4 specularColor;
 };
 
+struct alignas(16) LightBufferGPU {
+    DirectX::XMFLOAT4 positions[8];
+    DirectX::XMFLOAT4 colors[8];
+    int count;
+    float padding[3];
+};
+
 void drawTextured(const TexturedRenderObj& obj, const DirectX::XMMATRIX& world,
                    const DirectX::XMMATRIX& view, const DirectX::XMMATRIX& projection,
                    const DirectX::XMFLOAT4& cameraPos, Renderer& r);

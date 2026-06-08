@@ -13,6 +13,14 @@ cbuffer ConstantBuffer : register(b0)
     float4 specularColor;
 };
 
+cbuffer LightBuffer : register(b1)
+{
+    float4 pointLightsPos[8];
+    float4 pointLightsColor[8];
+    int pointLightCount;
+    float3 padding;
+};
+
 Texture2D albedoTexture : register(t0);
 Texture2D normalTexture : register(t1);
 SamplerState texSampler : register(s0);
@@ -79,5 +87,16 @@ float4 PSMain(VSOutput input) : SV_TARGET
     float spec = pow(max(dot(N, H), 0.0f), roughness * 128.0f + 1.0f);
     float3 specular = specularColor.xyz * lightColor.xyz * spec * (1.0f - metallic);
 
-    return float4(ambient + diffuse + specular, albedo.w);
+    float3 pointContrib = 0;
+    for (int i = 0; i < pointLightCount; i++) {
+        if (pointLightsPos[i].w < 0.5f) continue;
+        float3 fragToLight = pointLightsPos[i].xyz - input.worldPos;
+        float dist = length(fragToLight);
+        float3 Lp = fragToLight / dist;
+        float atten = 1.0f / (1.0f + 0.04f * dist * dist);
+        float NdotLp = max(dot(N, Lp), 0.0f);
+        pointContrib += pointLightsColor[i].xyz * albedo.xyz * NdotLp * atten * pointLightsColor[i].w;
+    }
+
+    return float4(ambient + diffuse + specular + pointContrib, albedo.w);
 }

@@ -202,6 +202,8 @@ void drawTextured(const TexturedRenderObj& obj, const DirectX::XMMATRIX& world,
     r.mContext->UpdateSubresource(obj.mConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
     r.mContext->VSSetConstantBuffers(0, 1, obj.mConstantBuffer.GetAddressOf());
     r.mContext->PSSetConstantBuffers(0, 1, obj.mConstantBuffer.GetAddressOf());
+    if (r.mLightBuffer)
+        r.mContext->PSSetConstantBuffers(1, 1, r.mLightBuffer.GetAddressOf());
 
     r.mContext->RSSetState(obj.mRasterizerState.Get());
     r.mContext->IASetInputLayout(obj.mInputLayout.Get());

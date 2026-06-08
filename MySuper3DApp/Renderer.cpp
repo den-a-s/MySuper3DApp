@@ -1,4 +1,5 @@
 #include "Renderer.h"
+#include "TexturedRenderObj.h"
 #include <d3d11.h>
 #include <d3dcompiler.h>
 #include <directxmath.h>
@@ -182,6 +183,17 @@ Renderer Renderer::create() {
     }
 
     backTex->Release();
+
+    {
+        D3D11_BUFFER_DESC lbDesc = {};
+        lbDesc.ByteWidth = sizeof(LightBufferGPU);
+        lbDesc.Usage = D3D11_USAGE_DEFAULT;
+        lbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+        if (FAILED(renderer.mDevice->CreateBuffer(&lbDesc, nullptr,
+            renderer.mLightBuffer.GetAddressOf()))) {
+            throw std::runtime_error("FAILED CreateLightConstantBuffer");
+        }
+    }
 
     {
         uint8_t whitePixel[4] = {255, 255, 255, 255};

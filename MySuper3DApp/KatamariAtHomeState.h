@@ -8,6 +8,12 @@
 #include <deque>
 #include <random>
 
+struct LightProjectile {
+    DirectX::XMFLOAT3 position;
+    DirectX::XMFLOAT3 velocity;
+    float lifetime;
+};
+
 struct KatamariGameObject {
     std::vector<TexturedRenderObj> renderObjs;
     DirectX::XMFLOAT3 position;
@@ -59,4 +65,8 @@ private:
 
     TexturedRenderObj mOutlineSphere;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mOutlineRasterizerState;
+    TexturedRenderObj mProjectileSphere;
+    std::vector<LightProjectile> mProjectiles;
+    float mLightSpawnTimer = 0.0f;
+    float mLightSpawnInterval = 0.15f;
 };

@@ -33,6 +33,7 @@ public:
     Microsoft::WRL::ComPtr<ID3D11DepthStencilState> mDepthStencilState;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mWhiteTextureSRV;
     Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> mFlatNormalSRV;
+    Microsoft::WRL::ComPtr<ID3D11Buffer> mLightBuffer;
 
 private:
     Renderer() = default;

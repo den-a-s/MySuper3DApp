@@ -159,6 +159,13 @@ void KatamariAtHomeState::init() {
             log("ERROR: Failed to create outline rasterizer state");
         }
         mOutlineSphere.mRasterizerState = mOutlineRasterizerState;
+
+        auto projMesh = createSphereMesh(0.25f, 8, 8);
+        LoadedMaterial projMat;
+        projMat.baseColor = {0.8f, 0.2f, 0.8f, 1.0f};
+        projMat.ambientColor = {0.3f, 0.0f, 0.3f, 1.0f};
+        mProjectileSphere = TexturedRenderObj::create(renderer, L"../Shaders/ObjectShader.hlsl",
+                                                       projMesh, projMat, "");
     } else {
         log("ERROR: No ball object found in scene.json");
     }
@@ -321,6 +328,50 @@ void KatamariAtHomeState::update(float dt) {
         auto& cam = mGame.getRenderer().getCamera();
         cam.setTarget(mObjects[mBallIndex].position);
         cam.update();
+
+        auto& renderer = mGame.getRenderer();
+
+        mLightSpawnTimer -= dt;
+        if (mLightSpawnTimer <= 0.0f) {
+            mLightSpawnTimer = mLightSpawnInterval;
+
+            LightProjectile p;
+            DirectX::XMFLOAT3 ballPos = mBall.getPosition();
+            p.position = ballPos;
+
+            std::uniform_real_distribution<float> angleDist(0.0f, DirectX::XM_2PI);
+            std::uniform_real_distribution<float> upDist(-0.3f, 1.0f);
+            float theta = angleDist(mRng);
+            float phi = acosf(upDist(mRng));
+            float speed = 25.0f;
+            p.velocity.x = sinf(phi) * cosf(theta) * speed;
+            p.velocity.y = cosf(phi) * speed;
+            p.velocity.z = sinf(phi) * sinf(theta) * speed;
+            p.lifetime = 3.0f;
+
+            mProjectiles.push_back(p);
+        }
+
+        for (auto& proj : mProjectiles) {
+            proj.position.x += proj.velocity.x * dt;
+            proj.position.y += proj.velocity.y * dt;
+            proj.position.z += proj.velocity.z * dt;
+            proj.lifetime -= dt;
+        }
+        mProjectiles.erase(
+            std::remove_if(mProjectiles.begin(), mProjectiles.end(),
+                [](const LightProjectile& p) { return p.lifetime <= 0.0f; }),
+            mProjectiles.end());
+
+        {
+            LightBufferGPU lightCB = {};
+            lightCB.count = min((int)mProjectiles.size(), 8);
+            for (int i = 0; i < lightCB.count; i++) {
+                lightCB.positions[i] = DirectX::XMFLOAT4(mProjectiles[i].position.x, mProjectiles[i].position.y, mProjectiles[i].position.z, 1.0f);
+                lightCB.colors[i] = DirectX::XMFLOAT4(0.8f, 0.2f, 0.8f, 2.5f);
+            }
+            renderer.mContext->UpdateSubresource(renderer.mLightBuffer.Get(), 0, nullptr, &lightCB, 0, 0);
+        }
     }
 }
 
@@ -400,6 +451,13 @@ void KatamariAtHomeState::render(float deltaTime) {
         for (auto& renderObj : obj.renderObjs) {
             drawTextured(renderObj, world, view, proj, camPos, renderer);
         }
+    }
+
+    for (auto& p_proj : mProjectiles) {
+        auto world =
+            DirectX::XMMatrixScaling(1.2f, 1.2f, 1.2f) *
+            DirectX::XMMatrixTranslation(p_proj.position.x, p_proj.position.y, p_proj.position.z);
+        drawTextured(mProjectileSphere, world, view, proj, camPos, renderer);
     }
 
     ImGui_ImplDX11_NewFrame();
