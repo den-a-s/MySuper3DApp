@@ -27,5 +27,10 @@ struct LoadedMaterial {
     std::string aoPath;
 };
 
-LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& outMaterials);
+struct LoadedSubMesh {
+    LoadedMesh mesh;
+    LoadedMaterial material;
+};
+
+std::vector<LoadedSubMesh> parseObj(const std::string& objPath);
 LoadedMaterial parseMtl(const std::string& mtlPath, const std::string& matName);

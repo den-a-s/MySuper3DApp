@@ -182,38 +182,42 @@ void KatamariGameState::loadScene() {
     for (auto& item : objs) {
         std::string objPath = item["objPath"];
 
-        std::vector<LoadedMaterial> mats;
-        auto mesh = parseObj(objPath, mats);
+        auto subMeshes = parseObj(objPath);
 
         KatamariGameObject obj;
-        if (!mesh.vertices.empty()) {
+        if (!subMeshes.empty()) {
             float cx = 0, cy = 0, cz = 0;
-            for (auto& v : mesh.vertices) {
-                cx += v.position.x;
-                cy += v.position.y;
-                cz += v.position.z;
+            int totalVerts = 0;
+            for (auto& sub : subMeshes) {
+                for (auto& v : sub.mesh.vertices) {
+                    cx += v.position.x;
+                    cy += v.position.y;
+                    cz += v.position.z;
+                }
+                totalVerts += (int)sub.mesh.vertices.size();
             }
-            float invN = 1.0f / (float)mesh.vertices.size();
-            cx *= invN; cy *= invN; cz *= invN;
-            for (auto& v : mesh.vertices) {
-                v.position.x -= cx;
-                v.position.y -= cy;
-                v.position.z -= cz;
+            if (totalVerts > 0) {
+                float invN = 1.0f / (float)totalVerts;
+                cx *= invN; cy *= invN; cz *= invN;
             }
-
-            LoadedMaterial mat;
-            if (!mats.empty())
-                mat = mats.back();
-            obj.renderObj = TexturedRenderObj::create(
-                renderer, L"../Shaders/ObjectShader.hlsl",
-                mesh, mat, "../Objects/Textures");
 
             float maxR = 0.0f;
-            for (auto& v : mesh.vertices) {
-                float r = sqrtf(v.position.x * v.position.x +
-                                v.position.y * v.position.y +
-                                v.position.z * v.position.z);
-                if (r > maxR) maxR = r;
+            for (auto& sub : subMeshes) {
+                for (auto& v : sub.mesh.vertices) {
+                    v.position.x -= cx;
+                    v.position.y -= cy;
+                    v.position.z -= cz;
+                }
+                for (auto& v : sub.mesh.vertices) {
+                    float r = sqrtf(v.position.x * v.position.x +
+                                    v.position.y * v.position.y +
+                                    v.position.z * v.position.z);
+                    if (r > maxR) maxR = r;
+                }
+                obj.renderObjs.push_back(
+                    TexturedRenderObj::create(
+                        renderer, L"../Shaders/ObjectShader.hlsl",
+                        sub.mesh, sub.material, "../Objects/Textures"));
             }
             obj.boundingRadius = maxR;
         }
@@ -554,7 +558,9 @@ void KatamariGameState::render(float deltaTime) {
             DirectX::XMMatrixScaling(ballScale, ballScale, ballScale) *
             DirectX::XMMatrixRotationQuaternion(mBallOrientation) *
             DirectX::XMMatrixTranslation(ball.position.x, ball.position.y, ball.position.z);
-        drawTextured(ball.renderObj, world, view, proj, camPos, renderer);
+        for (auto& renderObj : ball.renderObjs) {
+            drawTextured(renderObj, world, view, proj, camPos, renderer);
+        }
 
         // Wireframe outline sphere
         float outlineScale = mBallRadius * 1.06f;
@@ -592,7 +598,9 @@ void KatamariGameState::render(float deltaTime) {
                 DirectX::XMMatrixRotationZ(obj.rotation.z) *
                 DirectX::XMMatrixTranslation(obj.position.x, obj.position.y, obj.position.z);
         }
-        drawTextured(obj.renderObj, world, view, proj, camPos, renderer);
+        for (auto& renderObj : obj.renderObjs) {
+            drawTextured(renderObj, world, view, proj, camPos, renderer);
+        }
     }
 
     // UI

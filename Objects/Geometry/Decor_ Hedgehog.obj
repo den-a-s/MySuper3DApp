@@ -1,7 +1,7 @@
-# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+﻿# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
 # File Created: 16.10.2014 00:07:55
 
-mtllib Hedgehog.mtl
+mtllib ..\Materials\Hedgehog.mtl
 
 #
 # object Hedra001
@@ -3436,4 +3436,6 @@ f 173/353 358/352 717/1732 487/1272
 f 215/356 359/355 718/1734 535/1368 
 f 28/359 360/358 719/1736 577/1452 
 # 720 polygons - 120 triangles
+
+
 

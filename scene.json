@@ -71,7 +71,7 @@
         {
             "multiplier": 0.5299999713897705,
             "name": "Desk Chair",
-            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "objPath": "../Objects/Geometry/childrens_chair.obj",
             "position": [
                 -29.399999618530273,
                 0.0,
@@ -88,7 +88,7 @@
         {
             "multiplier": 0.5299999713897705,
             "name": "Desk Chair",
-            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "objPath": "../Objects/Geometry/childrens_chair.obj",
             "position": [
                 0.0,
                 0.0,
@@ -105,7 +105,7 @@
         {
             "multiplier": 0.5299999713897705,
             "name": "Desk Chair",
-            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "objPath": "../Objects/Geometry/childrens_chair.obj",
             "position": [
                 0.0,
                 0.0,

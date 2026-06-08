@@ -116,17 +116,14 @@ void KatamariAtHomeState::loadScene() {
     for (auto& item : objs) {
         std::string objPath = item["objPath"];
 
-        std::vector<LoadedMaterial> mats;
-        auto mesh = parseObj(objPath, mats);
+        auto subMeshes = parseObj(objPath);
 
         KatamariObject obj;
-        if (!mesh.vertices.empty()) {
-            LoadedMaterial mat;
-            if (!mats.empty())
-                mat = mats.back();
-            obj.renderObj = TexturedRenderObj::create(
-                renderer, L"../Shaders/ObjectShader.hlsl",
-                mesh, mat, "../Objects/Textures");
+        for (auto& sub : subMeshes) {
+            obj.renderObjs.push_back(
+                TexturedRenderObj::create(
+                    renderer, L"../Shaders/ObjectShader.hlsl",
+                    sub.mesh, sub.material, "../Objects/Textures"));
         }
 
         obj.position = {0, 0, 0};
@@ -318,7 +315,9 @@ void KatamariAtHomeState::render(float deltaTime) {
             DirectX::XMMatrixRotationY(obj.rotation.y) *
             DirectX::XMMatrixRotationZ(obj.rotation.z) *
             DirectX::XMMatrixTranslation(obj.position.x, obj.position.y, obj.position.z);
-        drawTextured(obj.renderObj, world, view, proj, camPos, renderer);
+        for (auto& renderObj : obj.renderObjs) {
+            drawTextured(renderObj, world, view, proj, camPos, renderer);
+        }
     }
 
     ImGui_ImplDX11_NewFrame();

@@ -77,10 +77,40 @@ LoadedMaterial parseMtl(const std::string& mtlPath, const std::string& matName) 
     return mat;
 }
 
-LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& outMaterials) {
-    LoadedMesh mesh;
+struct SubMeshBuilder {
+    std::vector<VertexPNT> vertices;
+    std::vector<uint32_t> indices;
+    std::unordered_map<IndexTriple, uint32_t, IndexTripleHash> vertCache;
+    std::string matName;
+};
+
+static void finalizeSubMesh(SubMeshBuilder& builder,
+                            const std::vector<DirectX::XMFLOAT3>& normals)
+{
+    if (builder.indices.empty()) return;
+
+    if (normals.empty()) {
+        for (size_t i = 0; i + 2 < builder.indices.size(); i += 3) {
+            auto& v0 = builder.vertices[builder.indices[i]];
+            auto& v1 = builder.vertices[builder.indices[i + 1]];
+            auto& v2 = builder.vertices[builder.indices[i + 2]];
+            DirectX::XMVECTOR p0 = DirectX::XMLoadFloat3(&v0.position);
+            DirectX::XMVECTOR p1 = DirectX::XMLoadFloat3(&v1.position);
+            DirectX::XMVECTOR p2 = DirectX::XMLoadFloat3(&v2.position);
+            DirectX::XMVECTOR edge1 = DirectX::XMVectorSubtract(p1, p0);
+            DirectX::XMVECTOR edge2 = DirectX::XMVectorSubtract(p2, p0);
+            DirectX::XMVECTOR n = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(edge1, edge2));
+            DirectX::XMFLOAT3 fn;
+            DirectX::XMStoreFloat3(&fn, n);
+            v0.normal = fn; v1.normal = fn; v2.normal = fn;
+        }
+    }
+}
+
+std::vector<LoadedSubMesh> parseObj(const std::string& objPath) {
+    std::vector<LoadedSubMesh> result;
     std::ifstream f(objPath);
-    if (!f.is_open()) return mesh;
+    if (!f.is_open()) return result;
 
     std::vector<DirectX::XMFLOAT3> positions;
     std::vector<DirectX::XMFLOAT3> normals;
@@ -91,11 +121,10 @@ LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& out
     texcoords.reserve(100000);
 
     std::string mtlLib;
-    std::string currentMatName;
     auto objDir = dirName(objPath);
 
-    std::unordered_map<IndexTriple, uint32_t, IndexTripleHash> vertCache;
-    std::vector<IndexTriple> triIndices;
+    SubMeshBuilder currentBuilder;
+    bool hasFaces = false;
 
     std::string line;
     while (std::getline(f, line)) {
@@ -112,6 +141,8 @@ LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& out
             float u, v; iss >> u >> v;
             texcoords.push_back({u, v});
         } else if (token == "f") {
+            if (!hasFaces) hasFaces = true;
+
             std::string vertStr;
             std::vector<int> vi, ti, ni;
             while (iss >> vertStr) {
@@ -130,9 +161,9 @@ LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& out
                 for (int k = 0; k < 3; ++k) {
                     int idx = idxs[k];
                     IndexTriple key = {vi[idx], ti[idx], ni[idx]};
-                    auto it = vertCache.find(key);
-                    if (it != vertCache.end()) {
-                        mesh.indices.push_back(it->second);
+                    auto it = currentBuilder.vertCache.find(key);
+                    if (it != currentBuilder.vertCache.end()) {
+                        currentBuilder.indices.push_back(it->second);
                     } else {
                         VertexPNT v;
                         v.position = (key.vi >= 0 && key.vi < (int)positions.size())
@@ -141,10 +172,10 @@ LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& out
                             ? normals[key.ni] : DirectX::XMFLOAT3(0,1,0);
                         v.texcoord = (key.ti >= 0 && key.ti < (int)texcoords.size())
                             ? texcoords[key.ti] : DirectX::XMFLOAT2(0,0);
-                        uint32_t newIdx = (uint32_t)mesh.vertices.size();
-                        mesh.vertices.push_back(v);
-                        vertCache[key] = newIdx;
-                        mesh.indices.push_back(newIdx);
+                        uint32_t newIdx = (uint32_t)currentBuilder.vertices.size();
+                        currentBuilder.vertices.push_back(v);
+                        currentBuilder.vertCache[key] = newIdx;
+                        currentBuilder.indices.push_back(newIdx);
                     }
                 }
             }
@@ -154,31 +185,39 @@ LoadedMesh parseObj(const std::string& objPath, std::vector<LoadedMaterial>& out
             lib.erase(0, lib.find_first_not_of(" \t"));
             mtlLib = objDir + lib;
         } else if (token == "usemtl") {
-            iss >> currentMatName;
+            if (hasFaces && !currentBuilder.indices.empty()) {
+                finalizeSubMesh(currentBuilder, normals);
+                LoadedSubMesh sub;
+                sub.mesh.vertices = std::move(currentBuilder.vertices);
+                sub.mesh.indices = std::move(currentBuilder.indices);
+                sub.material.name = currentBuilder.matName;
+                result.push_back(std::move(sub));
+            }
+
+            iss >> currentBuilder.matName;
+            currentBuilder.vertices.clear();
+            currentBuilder.indices.clear();
+            currentBuilder.vertCache.clear();
+            hasFaces = true;
         }
     }
 
-    if (!mtlLib.empty() && !currentMatName.empty()) {
-        auto mat = parseMtl(mtlLib, currentMatName);
-        outMaterials.push_back(mat);
+    if (hasFaces && !currentBuilder.indices.empty()) {
+        finalizeSubMesh(currentBuilder, normals);
+        LoadedSubMesh sub;
+        sub.mesh.vertices = std::move(currentBuilder.vertices);
+        sub.mesh.indices = std::move(currentBuilder.indices);
+        sub.material.name = currentBuilder.matName;
+        result.push_back(std::move(sub));
     }
 
-    if (normals.empty()) {
-        for (size_t i = 0; i < mesh.indices.size(); i += 3) {
-            auto& v0 = mesh.vertices[mesh.indices[i]];
-            auto& v1 = mesh.vertices[mesh.indices[i + 1]];
-            auto& v2 = mesh.vertices[mesh.indices[i + 2]];
-            DirectX::XMVECTOR p0 = DirectX::XMLoadFloat3(&v0.position);
-            DirectX::XMVECTOR p1 = DirectX::XMLoadFloat3(&v1.position);
-            DirectX::XMVECTOR p2 = DirectX::XMLoadFloat3(&v2.position);
-            DirectX::XMVECTOR edge1 = DirectX::XMVectorSubtract(p1, p0);
-            DirectX::XMVECTOR edge2 = DirectX::XMVectorSubtract(p2, p0);
-            DirectX::XMVECTOR n = DirectX::XMVector3Normalize(DirectX::XMVector3Cross(edge1, edge2));
-            DirectX::XMFLOAT3 fn;
-            DirectX::XMStoreFloat3(&fn, n);
-            v0.normal = fn; v1.normal = fn; v2.normal = fn;
+    if (!mtlLib.empty()) {
+        for (auto& sub : result) {
+            if (!sub.material.name.empty()) {
+                sub.material = parseMtl(mtlLib, sub.material.name);
+            }
         }
     }
 
-    return mesh;
+    return result;
 }

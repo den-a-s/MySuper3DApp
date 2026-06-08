@@ -8,7 +8,7 @@
 #include <random>
 
 struct KatamariGameObject {
-    TexturedRenderObj renderObj;
+    std::vector<TexturedRenderObj> renderObjs;
     DirectX::XMFLOAT3 position;
     DirectX::XMFLOAT3 rotation;
     float scale;
