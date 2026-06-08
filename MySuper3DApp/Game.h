@@ -5,7 +5,7 @@
 #include <memory>
 #include <optional>
 
-enum class GameStateType { Menu, Pong, SolarSystem, KatamariAtHome, KatamariGame };
+enum class GameStateType { Menu, Pong, SolarSystem, Scene, KatamariAtHome };
 
 class GameState;
 

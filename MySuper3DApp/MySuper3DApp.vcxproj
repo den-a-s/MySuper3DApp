@@ -152,9 +152,9 @@
     <ClCompile Include="SolarSystemState.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="SquareRenderObj.cpp" />
-    <ClCompile Include="KatamariAtHomeState.cpp" />
+    <ClCompile Include="SceneState.cpp" />
     <ClCompile Include="KatamariInputManager.cpp" />
-    <ClCompile Include="KatamariGameState.cpp" />
+    <ClCompile Include="KatamariAtHomeState.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="TexturedRenderObj.cpp" />
     <ClCompile Include="DirectXTex\DDSTextureLoader11.cpp" />
@@ -173,9 +173,9 @@
     <ClInclude Include="SolarSystemState.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="SquareRenderObj.h" />
-    <ClInclude Include="KatamariAtHomeState.h" />
+    <ClInclude Include="SceneState.h" />
     <ClInclude Include="KatamariInputManager.h" />
-    <ClInclude Include="KatamariGameState.h" />
+    <ClInclude Include="KatamariAtHomeState.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="TexturedRenderObj.h" />
     <ClInclude Include="DirectXTex\DDSTextureLoader11.h" />

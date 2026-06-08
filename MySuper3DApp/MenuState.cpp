@@ -72,14 +72,14 @@ void MenuState::render(float deltaTime) {
 
     ImGui::Spacing();
 
-    if (ImGui::Button("Katamari At Home", ImVec2(bw, 60))) {
-        mGame.switchState(GameStateType::KatamariAtHome);
+    if (ImGui::Button("Scene", ImVec2(bw, 60))) {
+        mGame.switchState(GameStateType::Scene);
     }
 
     ImGui::Spacing();
 
-    if (ImGui::Button("Katamari Game", ImVec2(bw, 60))) {
-        mGame.switchState(GameStateType::KatamariGame);
+    if (ImGui::Button("Katamari At Home", ImVec2(bw, 60))) {
+        mGame.switchState(GameStateType::KatamariAtHome);
     }
 
     ImGui::Spacing();

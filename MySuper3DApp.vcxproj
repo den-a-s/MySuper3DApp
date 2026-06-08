@@ -36,8 +36,8 @@
     <ClCompile Include="MySuper3DApp\SolarInputManager.cpp" />
     <ClCompile Include="MySuper3DApp\SolarSystemState.cpp" />
     <ClCompile Include="MySuper3DApp\SquareRenderObj.cpp" />
-    <ClCompile Include="MySuper3DApp\KatamariGameState.cpp" />
     <ClCompile Include="MySuper3DApp\KatamariAtHomeState.cpp" />
+    <ClCompile Include="MySuper3DApp\SceneState.cpp" />
     <ClCompile Include="MySuper3DApp\ObjLoader.cpp" />
     <ClCompile Include="MySuper3DApp\TexturedRenderObj.cpp" />
     <ClCompile Include="MySuper3DApp\KatamariInputManager.cpp" />
@@ -55,8 +55,8 @@
     <ClInclude Include="MySuper3DApp\SolarInputManager.h" />
     <ClInclude Include="MySuper3DApp\SolarSystemState.h" />
     <ClInclude Include="MySuper3DApp\SquareRenderObj.h" />
-    <ClInclude Include="MySuper3DApp\KatamariGameState.h" />
     <ClInclude Include="MySuper3DApp\KatamariAtHomeState.h" />
+    <ClInclude Include="MySuper3DApp\SceneState.h" />
     <ClInclude Include="MySuper3DApp\ObjLoader.h" />
     <ClInclude Include="MySuper3DApp\TexturedRenderObj.h" />
     <ClInclude Include="MySuper3DApp\KatamariInputManager.h" />

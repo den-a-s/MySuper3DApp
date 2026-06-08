@@ -45,13 +45,13 @@
     <ClCompile Include="SquareRenderObj.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="KatamariAtHomeState.cpp">
+    <ClCompile Include="SceneState.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="KatamariInputManager.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="KatamariGameState.cpp">
+    <ClCompile Include="KatamariAtHomeState.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
     <ClCompile Include="ObjLoader.cpp">
@@ -98,13 +98,13 @@
     <ClInclude Include="SquareRenderObj.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="KatamariAtHomeState.h">
+    <ClInclude Include="SceneState.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="KatamariInputManager.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="KatamariGameState.h">
+    <ClInclude Include="KatamariAtHomeState.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="ObjLoader.h">
