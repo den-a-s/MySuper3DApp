@@ -55,7 +55,22 @@ void KatamariBall::update(float dt, const KatamariInputManager& input, const Cam
 
     mPosition.x += mVelocity.x * dt;
     mPosition.z += mVelocity.z * dt;
-    mPosition.y = mRadius;
+
+    bool spaceDown = input.isMoveUp();
+    if (spaceDown && !mWasSpaceDown && mJumpCount < mMaxJumps) {
+        mVelocity.y = mJumpSpeed;
+        mJumpCount++;
+    }
+    mWasSpaceDown = spaceDown;
+
+    mVelocity.y -= mGravity * dt;
+    mPosition.y += mVelocity.y * dt;
+
+    if (mPosition.y <= mRadius) {
+        mPosition.y = mRadius;
+        mVelocity.y = 0.0f;
+        mJumpCount = 0;
+    }
 }
 
 void KatamariBall::absorb(float objectGameSize) {
@@ -72,6 +87,8 @@ void KatamariBall::reset() {
     mRadius = mBaseRadius;
     XMStoreFloat4(&mSavedRot, XMQuaternionIdentity());
     mVelocity = {0, 0, 0};
+    mJumpCount = 0;
+    mWasSpaceDown = false;
     mMoveDrag = 5.0f;
     mRotationDrag = 0.14f;
     mRotationMaxSpeed = 6.0f;
@@ -98,10 +115,13 @@ void KatamariBall::setDirection(const XMVECTOR& dir, float dt) {
         XMStoreFloat4(&mSavedRot, newSavedRot);
     }
 
-    XMStoreFloat3(&mVelocity, XMVectorScale(tmp, mMoveMaxSpeed));
+    XMVECTOR newVel = XMVectorScale(tmp, mMoveMaxSpeed);
+    mVelocity.x = XMVectorGetX(newVel);
+    mVelocity.z = XMVectorGetZ(newVel);
 }
 
 void KatamariBall::resetMotion() {
     XMStoreFloat4(&mSavedRot, XMQuaternionIdentity());
     mVelocity = {0, 0, 0};
+    mJumpCount = 0;
 }

@@ -32,6 +32,11 @@ private:
     DirectX::XMVECTOR mOrientation;
     DirectX::XMFLOAT4 mSavedRot;
     DirectX::XMFLOAT3 mVelocity;
+    float mGravity = 40.0f;
+    float mJumpSpeed = 14.0f;
+    int mJumpCount = 0;
+    int mMaxJumps = 2;
+    bool mWasSpaceDown = false;
     float mMoveDrag = 5.0f;
     float mRotationDrag = 0.14f;
     float mRotationMaxSpeed = 6.0f;
