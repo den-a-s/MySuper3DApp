@@ -19,6 +19,7 @@ struct KatamariObject {
 class SceneState : public GameState {
 public:
     explicit SceneState(Game& game);
+    ~SceneState() override;
     void init() override;
     void onEnter() override;
     void handleInput(float deltaTime) override;

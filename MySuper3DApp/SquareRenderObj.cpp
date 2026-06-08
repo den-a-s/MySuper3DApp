@@ -176,7 +176,7 @@ SquareRenderObj SquareRenderObj::create(Renderer& r, const std::wstring& shaderF
 
     D3D_SHADER_MACRO Shader_Macros[] = {
         "TCOLOR", "float4(0.0f, 1.0f, 0.0f, 1.0f)", nullptr, nullptr};
-    ID3DBlob* errorPixelCode;
+    ID3DBlob* errorPixelCode = nullptr;
     res = D3DCompileFromFile(
         shaderFileName.c_str(), Shader_Macros, nullptr, "PSMain", "ps_5_0",
         D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, 0,

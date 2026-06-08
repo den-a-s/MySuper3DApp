@@ -150,9 +150,11 @@ std::vector<LoadedSubMesh> parseObj(const std::string& objPath) {
                 std::istringstream vis(vertStr);
                 int v = 0, t = 0, n = 0;
                 vis >> v;
-                if (!vis.eof()) { vis >> t; if (t < 0) t = 0; }
+                if (!vis.eof()) { vis >> t; if (vis.fail()) { vis.clear(); t = 0; } if (t < 0) t = 0; }
                 if (!vis.eof()) { vis >> n; if (n < 0) n = 0; }
-                vi.push_back(v > 0 ? v - 1 : (int)positions.size() + v);
+                int viIdx = v > 0 ? v - 1 : (int)positions.size() + v;
+                if (viIdx < 0) viIdx = 0;
+                vi.push_back(viIdx);
                 ti.push_back(t > 0 ? t - 1 : -1);
                 ni.push_back(n > 0 ? n - 1 : -1);
             }

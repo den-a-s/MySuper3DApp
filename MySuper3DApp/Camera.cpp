@@ -45,7 +45,6 @@ void Camera::initFPS(const DirectX::XMFLOAT3& position, float yaw, float pitch, 
 }
 
 void Camera::initOrtho(float halfWidth, float halfHeight, float aspect) {
-    mOrthoHalfWidth = halfWidth;
     mOrthoHalfHeight = halfHeight;
     mMode = CameraMode::Fixed;
     mPosition = {0.0f, 0.0f, -10.0f};
@@ -103,9 +102,7 @@ void Camera::setProjMode(ProjMode mode) {
         } else {
             dist = sqrtf(mPosition.x * mPosition.x + mPosition.y * mPosition.y + mPosition.z * mPosition.z);
         }
-        float half = dist * tanf(DirectX::XMConvertToRadians(mFovDegrees * 0.5f));
-        mOrthoHalfHeight = half;
-        mOrthoHalfWidth = half;
+        mOrthoHalfHeight = dist * tanf(DirectX::XMConvertToRadians(mFovDegrees * 0.5f));
     }
     recalculateProjection();
 }
@@ -166,9 +163,7 @@ void Camera::zoomOrbit(float delta) {
 
 void Camera::zoomOrtho(float delta) {
     mOrthoHalfHeight += delta;
-    mOrthoHalfWidth += delta;
     if (mOrthoHalfHeight < 0.1f) mOrthoHalfHeight = 0.1f;
-    if (mOrthoHalfWidth < 0.1f) mOrthoHalfWidth = 0.1f;
     recalculateProjection();
 }
 
@@ -183,11 +178,13 @@ void Camera::recalculateProjection() {
         mFovAngleY = DirectX::XMConvertToRadians(mFovDegrees);
         mProjection = DirectX::XMMatrixPerspectiveFovLH(mFovAngleY, mAspect, mNearZ, mFarZ);
         break;
-    case ProjMode::Ortho:
+    case ProjMode::Ortho: {
+        float halfW = mOrthoHalfHeight * mAspect;
         mProjection = DirectX::XMMatrixOrthographicOffCenterLH(
-            -mOrthoHalfWidth * mAspect, mOrthoHalfWidth * mAspect,
+            -halfW, halfW,
             -mOrthoHalfHeight, mOrthoHalfHeight,
             mNearZ, mFarZ);
         break;
+    }
     }
 }

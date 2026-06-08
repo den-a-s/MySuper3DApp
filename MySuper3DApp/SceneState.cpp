@@ -66,11 +66,15 @@ static LoadedMesh createGroundMesh(float size, float uTiles) {
         {{-h, 0.0f,  h}, {0,1,0}, {0, uTiles}},
     };
     mesh.vertices.assign(verts, verts + 4);
-    mesh.indices = {0, 1, 2, 0, 2, 3};
+    mesh.indices = {0, 2, 1, 0, 3, 2};
     return mesh;
 }
 
 SceneState::SceneState(Game& game) : mGame(game) {}
+
+SceneState::~SceneState() {
+    CoUninitialize();
+}
 
 void SceneState::init() {
     std::ignore = CoInitializeEx(nullptr, COINIT_MULTITHREADED);

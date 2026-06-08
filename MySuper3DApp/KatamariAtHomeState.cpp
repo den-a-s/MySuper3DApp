@@ -108,6 +108,10 @@ static LoadedMesh createSphereMesh(float radius, int slices, int stacks) {
 KatamariAtHomeState::KatamariAtHomeState(Game& game) : mGame(game), mRng(std::random_device{}()) {
 }
 
+KatamariAtHomeState::~KatamariAtHomeState() {
+    CoUninitialize();
+}
+
 void KatamariAtHomeState::init() {
     CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
@@ -151,7 +155,9 @@ void KatamariAtHomeState::init() {
         outlineRastDesc.CullMode = D3D11_CULL_NONE;
         outlineRastDesc.FillMode = D3D11_FILL_WIREFRAME;
         outlineRastDesc.DepthClipEnable = TRUE;
-        renderer.mDevice->CreateRasterizerState(&outlineRastDesc, mOutlineRasterizerState.GetAddressOf());
+        if (FAILED(renderer.mDevice->CreateRasterizerState(&outlineRastDesc, mOutlineRasterizerState.GetAddressOf()))) {
+            log("ERROR: Failed to create outline rasterizer state");
+        }
         mOutlineSphere.mRasterizerState = mOutlineRasterizerState;
     } else {
         log("ERROR: No ball object found in scene.json");

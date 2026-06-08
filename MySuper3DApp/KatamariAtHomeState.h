@@ -28,6 +28,7 @@ struct KatamariGameObject {
 class KatamariAtHomeState : public GameState {
 public:
     explicit KatamariAtHomeState(Game& game);
+    ~KatamariAtHomeState() override;
     void init() override;
     void onEnter() override;
     void handleInput(float deltaTime) override;

@@ -26,12 +26,12 @@ void MenuState::init() {}
 void MenuState::handleInput(float deltaTime) {
     MSG msg = {};
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        if (msg.message == WM_QUIT) {
+            mGame.requestExit();
+            return;
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-    }
-    if (msg.message == WM_QUIT) {
-        mGame.requestExit();
-        return;
     }
 }
 

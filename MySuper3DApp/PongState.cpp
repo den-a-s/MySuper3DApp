@@ -56,12 +56,12 @@ void PongState::onEnter() {
 void PongState::handleInput(float deltaTime) {
     MSG msg = {};
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        if (msg.message == WM_QUIT) {
+            mGame.requestExit();
+            return;
+        }
         TranslateMessage(&msg);
         DispatchMessage(&msg);
-    }
-    if (msg.message == WM_QUIT) {
-        mGame.requestExit();
-        return;
     }
 
     if (mInput.isExit()) {
@@ -159,8 +159,9 @@ void PongState::update(float deltaTime) {
 void PongState::resetBall() {
     mBallPos = DirectX::XMFLOAT3(0.0f, 0.0f, 0.0f);
     float angle = (rand() % 100 - 50) * 0.02f;
+    int dir = (rand() % 2 == 0) ? 1 : -1;
     mBallVel =
-        DirectX::XMFLOAT3(2.0f * (mBallVel.x > 0 ? 1 : -1), 1.5f + angle, 0.0f);
+        DirectX::XMFLOAT3(2.0f * dir, 1.5f + angle, 0.0f);
 }
 
 

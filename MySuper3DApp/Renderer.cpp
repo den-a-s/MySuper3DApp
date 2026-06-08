@@ -63,7 +63,7 @@ Microsoft::WRL::ComPtr<IDXGIAdapter> chooseAdapterFromConfig() {
             DXGI_ADAPTER_DESC desc;
             if (SUCCEEDED(a->GetDesc(&desc))) {
                 char name[128];
-                wcstombs_s(nullptr, name, desc.Description, sizeof(name));
+                wcstombs_s(nullptr, name, sizeof(name), desc.Description, _TRUNCATE);
                 if (strstr(name, preferred.c_str()))
                     return a;
             }
@@ -117,9 +117,13 @@ Renderer Renderer::create() {
         .SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL,
         .Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH};
 
+    UINT createDeviceFlags = 0;
+#if defined(_DEBUG)
+    createDeviceFlags |= D3D11_CREATE_DEVICE_DEBUG;
+#endif
     auto res = D3D11CreateDeviceAndSwapChain(
         renderer.mAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, nullptr,
-        D3D11_CREATE_DEVICE_DEBUG, featureLevel, featureLevelSize,
+        createDeviceFlags, featureLevel, featureLevelSize,
         D3D11_SDK_VERSION, &swapDesc, renderer.mSwapChain.GetAddressOf(),
         renderer.mDevice.GetAddressOf(), nullptr,
         renderer.mContext.GetAddressOf());
@@ -129,10 +133,17 @@ Renderer Renderer::create() {
             std::format("FAILED D3D11CreateDeviceAndSwapChain code {}", res));
     }
 
-    ID3D11Texture2D* backTex;
+    ID3D11Texture2D* backTex = nullptr;
     res = renderer.mSwapChain->GetBuffer(0, IID_PPV_ARGS(&backTex));
+    if (FAILED(res)) {
+        throw std::runtime_error("FAILED GetBuffer");
+    }
     res = renderer.mDevice->CreateRenderTargetView(
         backTex, nullptr, renderer.mRTV.GetAddressOf());
+    if (FAILED(res)) {
+        backTex->Release();
+        throw std::runtime_error("FAILED CreateRenderTargetView");
+    }
 
     UINT width = renderer.mDisplay->getScreenWidth();
     UINT height = renderer.mDisplay->getScreenHeight();

@@ -20,6 +20,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT umessage, WPARAM wparam, LPARAM lparam)
 DisplayWin32::DisplayWin32(const std::wstring& applicationName, const int screenHeight, const int screenWidth) {
     mApplicationName = applicationName;
     mHInstance = GetModuleHandle(nullptr);
+    mWindowedRect = {};
 
     mWc.style = CS_HREDRAW | CS_VREDRAW | CS_OWNDC;
     mWc.lpfnWndProc = WndProc;
