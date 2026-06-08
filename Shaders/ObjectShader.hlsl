@@ -10,7 +10,7 @@ cbuffer ConstantBuffer : register(b0)
     float4 cameraPos;
     float roughness;
     float metallic;
-    float2 padding;
+    float4 specularColor;
 };
 
 Texture2D albedoTexture : register(t0);
@@ -51,6 +51,23 @@ float4 PSMain(VSOutput input) : SV_TARGET
         albedo = baseColor;
 
     float3 N = normalize(input.worldNormal);
+
+    float3 sampledNormal = normalTexture.Sample(texSampler, input.texcoord).xyz;
+    sampledNormal = sampledNormal * 2.0f - 1.0f;
+    if (abs(sampledNormal.x) > 0.01f || abs(sampledNormal.y) > 0.01f) {
+        float3 dp1 = ddx(input.worldPos);
+        float3 dp2 = ddy(input.worldPos);
+        float2 duv1 = ddx(input.texcoord);
+        float2 duv2 = ddy(input.texcoord);
+        float3 T = dp1 * duv2.y - dp2 * duv1.y;
+        if (length(T) > 0.001f) {
+            T = normalize(T);
+            float3 B = cross(N, T);
+            sampledNormal = normalize(sampledNormal);
+            N = normalize(mul(sampledNormal, float3x3(T, B, N)));
+        }
+    }
+
     float3 L = normalize(-lightDir.xyz);
     float NdotL = max(0.0f, dot(N, L));
 
@@ -60,7 +77,7 @@ float4 PSMain(VSOutput input) : SV_TARGET
     float3 V = normalize(cameraPos.xyz - input.worldPos);
     float3 H = normalize(L + V);
     float spec = pow(max(dot(N, H), 0.0f), roughness * 128.0f + 1.0f);
-    float3 specular = lightColor.xyz * spec * (1.0f - metallic);
+    float3 specular = specularColor.xyz * lightColor.xyz * spec * (1.0f - metallic);
 
     return float4(ambient + diffuse + specular, albedo.w);
 }

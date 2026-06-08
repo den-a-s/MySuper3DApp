@@ -193,6 +193,27 @@ Renderer Renderer::create() {
         }
     }
 
+    {
+        uint8_t flatNormalPixel[4] = {128, 128, 255, 255};
+        D3D11_TEXTURE2D_DESC td = {};
+        td.Width = 1;
+        td.Height = 1;
+        td.MipLevels = 1;
+        td.ArraySize = 1;
+        td.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+        td.SampleDesc.Count = 1;
+        td.Usage = D3D11_USAGE_DEFAULT;
+        td.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+        D3D11_SUBRESOURCE_DATA sd = {};
+        sd.pSysMem = flatNormalPixel;
+        sd.SysMemPitch = 4;
+        Microsoft::WRL::ComPtr<ID3D11Texture2D> normalTex;
+        if (SUCCEEDED(renderer.mDevice->CreateTexture2D(&td, &sd, normalTex.GetAddressOf()))) {
+            renderer.mDevice->CreateShaderResourceView(normalTex.Get(), nullptr,
+                renderer.mFlatNormalSRV.GetAddressOf());
+        }
+    }
+
     return renderer;
 }
 

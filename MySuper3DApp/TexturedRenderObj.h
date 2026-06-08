@@ -50,6 +50,7 @@ struct alignas(16) ObjectConstantBuffer {
     float roughness;
     float metallic;
     float padding[2];
+    DirectX::XMFLOAT4 specularColor;
 };
 
 void drawTextured(const TexturedRenderObj& obj, const DirectX::XMMATRIX& world,

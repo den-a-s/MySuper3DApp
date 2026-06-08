@@ -36,6 +36,7 @@ public:
     DirectX::XMMATRIX getView() const { return mView; }
     DirectX::XMMATRIX getProjection() const { return mProjection; }
 
+    float getRadius() const { return mRadius; }
     CameraMode mMode = CameraMode::FPS;
 
 private:

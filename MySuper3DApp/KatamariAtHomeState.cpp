@@ -73,7 +73,7 @@ static LoadedMesh createGroundMesh(float size, float uTiles) {
 KatamariAtHomeState::KatamariAtHomeState(Game& game) : mGame(game) {}
 
 void KatamariAtHomeState::init() {
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    std::ignore = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
     auto& renderer = mGame.getRenderer();
     auto* device = renderer.mDevice.Get();

@@ -163,7 +163,7 @@ TexturedRenderObj TexturedRenderObj::create(
         }
     }
     if (!obj.mNormalSRV)
-        obj.mNormalSRV = r.mWhiteTextureSRV;
+        obj.mNormalSRV = r.mFlatNormalSRV;
 
     D3D11_SAMPLER_DESC sampDesc = {};
     sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -195,6 +195,9 @@ void drawTextured(const TexturedRenderObj& obj, const DirectX::XMMATRIX& world,
     cb.cameraPos = cameraPos;
     cb.roughness = obj.mMaterial.specularExponent / 128.0f;
     cb.metallic = 0.0f;
+    cb.specularColor = obj.mMaterial.specularColor;
+    if (cb.specularColor.x == 0.0f && cb.specularColor.y == 0.0f && cb.specularColor.z == 0.0f)
+        cb.specularColor = {0.5f, 0.5f, 0.5f, 1.0f};
 
     r.mContext->UpdateSubresource(obj.mConstantBuffer.Get(), 0, nullptr, &cb, 0, 0);
     r.mContext->VSSetConstantBuffers(0, 1, obj.mConstantBuffer.GetAddressOf());

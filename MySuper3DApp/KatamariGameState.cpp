@@ -629,9 +629,8 @@ void KatamariGameState::render(float deltaTime) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Settings")) {
-                ImGui::SliderFloat("Move Drag", &mMoveDrag, 1.0f, 15.0f, "%.1f");
-                ImGui::SliderFloat("Camera Distance", &mCameraDistance, 5.0f, 200.0f, "%.1f");
-                ImGui::SliderFloat("Camera Height", &mCameraDistance, 5.0f, 200.0f, "%.1f");
+                ImGui::Text("Camera Distance: %.1f", cam.getRadius());
+                ImGui::SliderFloat("Move Speed", &mMoveMaxSpeed, 5.0f, 100.0f, "%.1f");
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {
