@@ -73,7 +73,7 @@ void katamariCheckPickups(
             if (XMVectorGetX(XMVector3Length(diff)) < 0.0001f) {
                 dir = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
             }
-            XMVECTOR worldOffset = XMVectorScale(dir, ballRadius + objR);
+            XMVECTOR worldOffset = XMVectorScale(dir, ballRadius + objR * 0.7f);
             XMVECTOR invOrient = XMQuaternionInverse(ballOrientation);
             XMVECTOR localOffset = XMVector3Rotate(worldOffset, invOrient);
             XMStoreFloat3(&obj.attachOffset, localOffset);
@@ -110,7 +110,7 @@ void katamariCheckPickups(
                 if (XMVectorGetX(XMVector3Length(diff)) < 0.0001f) {
                     dir = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
                 }
-                XMVECTOR worldOffset = XMVectorScale(dir, attachedR + freeR);
+                XMVECTOR worldOffset = XMVectorScale(dir, attachedR + freeR * 0.7f);
                 XMVECTOR invOrient = XMQuaternionInverse(ballOrientation);
                 XMVECTOR localOffset = XMVector3Rotate(worldOffset, invOrient);
                 XMStoreFloat3(&freeObj.attachOffset, localOffset);
