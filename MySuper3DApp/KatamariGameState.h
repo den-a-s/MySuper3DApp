@@ -13,6 +13,7 @@ struct KatamariGameObject {
     DirectX::XMFLOAT3 rotation;
     float scale;
     float scaleMultiplier = 1.0f;
+    float gameSize = 0.0f;
     std::string name;
     std::string objPath;
 
@@ -36,6 +37,7 @@ private:
     void loadScene();
     void scatterObjects();
     DirectX::XMVECTOR computeObjectWorldPos(int index, DirectX::XMVECTOR ballPos) const;
+    void updateBallSize(float absorbedSize);
     void updateBall(float dt);
     void checkPickups();
     void log(const std::string& msg);
@@ -50,9 +52,13 @@ private:
     float mBallRadius = 1.0f;
     float mBallBaseRadius = 1.0f;
     DirectX::XMVECTOR mBallOrientation;
-    DirectX::XMVECTOR mPrevCamForward;
 
-    float mMoveSpeed = 12.0f;
+    DirectX::XMFLOAT4 mSavedRot;
+    DirectX::XMFLOAT3 mBallVelocity;
+    float mMoveDrag = 5.0f;
+    float mRotationDrag = 0.14f;
+    float mRotationMaxSpeed = 0.1f;
+    float mMoveMaxSpeed = 8.0f;
 
     float mCameraDistance = 15.0f;
     float mInitialAspect = 1.0f;
@@ -63,4 +69,7 @@ private:
 
     bool mMousePressed = false;
     int mMouseX = 0, mMouseY = 0;
+
+    TexturedRenderObj mOutlineSphere;
+    Microsoft::WRL::ComPtr<ID3D11RasterizerState> mOutlineRasterizerState;
 };

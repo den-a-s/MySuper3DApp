@@ -71,9 +71,43 @@ static LoadedMesh createGroundMesh(float size, float uTiles) {
     return mesh;
 }
 
+static LoadedMesh createSphereMesh(float radius, int slices, int stacks) {
+    LoadedMesh mesh;
+    for (int i = 0; i <= stacks; ++i) {
+        float phi = DirectX::XM_PI * i / stacks;
+        for (int j = 0; j <= slices; ++j) {
+            float theta = 2.0f * DirectX::XM_PI * j / slices;
+            VertexPNT v;
+            v.position.x = radius * sinf(phi) * cosf(theta);
+            v.position.y = radius * cosf(phi);
+            v.position.z = radius * sinf(phi) * sinf(theta);
+            v.normal.x = sinf(phi) * cosf(theta);
+            v.normal.y = cosf(phi);
+            v.normal.z = sinf(phi) * sinf(theta);
+            v.texcoord.x = (float)j / slices;
+            v.texcoord.y = (float)i / stacks;
+            mesh.vertices.push_back(v);
+        }
+    }
+    for (int i = 0; i < stacks; ++i) {
+        for (int j = 0; j < slices; ++j) {
+            int first = i * (slices + 1) + j;
+            int second = first + slices + 1;
+            mesh.indices.push_back(first);
+            mesh.indices.push_back(second);
+            mesh.indices.push_back(first + 1);
+            mesh.indices.push_back(second);
+            mesh.indices.push_back(second + 1);
+            mesh.indices.push_back(first + 1);
+        }
+    }
+    return mesh;
+}
+
 KatamariGameState::KatamariGameState(Game& game) : mGame(game), mRng(std::random_device{}()) {
     mBallOrientation = DirectX::XMQuaternionIdentity();
-    mPrevCamForward = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
+    DirectX::XMStoreFloat4(&mSavedRot, DirectX::XMQuaternionIdentity());
+    mBallVelocity = {0, 0, 0};
 }
 
 void KatamariGameState::init() {
@@ -108,6 +142,19 @@ void KatamariGameState::init() {
         mCameraDistance = max(mCameraDistance, mBallRadius * 3.0f);
         scatterObjects();
         log("Game started — " + std::to_string(mObjects.size() - 1) + " objects scattered");
+
+        auto sphereMesh = createSphereMesh(1.0f, 16, 16);
+        LoadedMaterial sphereMat;
+        sphereMat.baseColor = {0.2f, 0.6f, 1.0f, 0.3f};
+        sphereMat.ambientColor = {0.1f, 0.1f, 0.2f, 1.0f};
+        mOutlineSphere = TexturedRenderObj::create(renderer, L"../Shaders/ObjectShader.hlsl",
+                                                     sphereMesh, sphereMat, "");
+        CD3D11_RASTERIZER_DESC outlineRastDesc = {};
+        outlineRastDesc.CullMode = D3D11_CULL_NONE;
+        outlineRastDesc.FillMode = D3D11_FILL_WIREFRAME;
+        outlineRastDesc.DepthClipEnable = TRUE;
+        renderer.mDevice->CreateRasterizerState(&outlineRastDesc, mOutlineRasterizerState.GetAddressOf());
+        mOutlineSphere.mRasterizerState = mOutlineRasterizerState;
     } else {
         log("ERROR: No ball object found in scene.json");
     }
@@ -192,6 +239,8 @@ void KatamariGameState::loadScene() {
         if (item.contains("multiplier"))
             obj.scaleMultiplier = item["multiplier"];
 
+        obj.gameSize = item.value("katSize", obj.boundingRadius * obj.scale * obj.scaleMultiplier);
+
         mObjects.push_back(std::move(obj));
     }
     log("Scene loaded (" + std::to_string(mObjects.size()) + " objects)");
@@ -244,6 +293,8 @@ void KatamariGameState::onEnter() {
     } else {
         cam.initFPS(DirectX::XMFLOAT3(0.0f, 8.0f, -18.0f), 0.0f, -0.4f, aspect);
     }
+    DirectX::XMStoreFloat4(&mSavedRot, DirectX::XMQuaternionIdentity());
+    mBallVelocity = {0, 0, 0};
     SetWindowText(renderer.mDisplay->getHandlerWindow(), L"Katamari Game");
 }
 
@@ -306,6 +357,16 @@ void KatamariGameState::update(float dt) {
     }
 }
 
+void KatamariGameState::updateBallSize(float absorbedSize) {
+    float tmp = sqrtf(mBallRadius * mBallRadius + absorbedSize * absorbedSize);
+    mBallRadius = tmp;
+    mRotationMaxSpeed = 0.1f / (tmp * tmp);
+    if (mRotationMaxSpeed < 0.005f)
+        mRotationMaxSpeed = 0.005f;
+    mMoveMaxSpeed = 8.0f * sqrtf(tmp);
+    mRotationDrag = 0.1f + 0.06f / sqrtf(tmp);
+}
+
 void KatamariGameState::updateBall(float dt) {
     if (mBallIndex < 0) return;
     auto& ball = mObjects[mBallIndex];
@@ -322,53 +383,73 @@ void KatamariGameState::updateBall(float dt) {
     DirectX::XMVECTOR right = DirectX::XMVector3Cross(
         DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), forward);
 
-    // Camera Y-rotation conjugate (reproject accumulated roll to new camera axes)
-    float prevYaw = atan2f(DirectX::XMVectorGetZ(mPrevCamForward),
-                           DirectX::XMVectorGetX(mPrevCamForward));
-    float curYaw = atan2f(DirectX::XMVectorGetZ(forward),
-                          DirectX::XMVectorGetX(forward));
-    float yawDelta = curYaw - prevYaw;
-    constexpr float kPI = 3.14159265f;
-    constexpr float k2PI = 6.28318531f;
-    if (yawDelta > kPI) yawDelta -= k2PI;
-    if (yawDelta < -kPI) yawDelta += k2PI;
-    if (fabsf(yawDelta) > 0.0001f) {
-        DirectX::XMVECTOR yRot = DirectX::XMQuaternionRotationAxis(
-            DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), yawDelta);
-        DirectX::XMVECTOR yRotInv = DirectX::XMQuaternionInverse(yRot);
-        mBallOrientation = DirectX::XMQuaternionMultiply(yRot,
-            DirectX::XMQuaternionMultiply(mBallOrientation, yRotInv));
-        mBallOrientation = DirectX::XMQuaternionNormalize(mBallOrientation);
-    }
-    mPrevCamForward = forward;
-
+    // Compute move direction from input (camera-relative)
     DirectX::XMVECTOR moveDir = DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f);
     if (mInput.isMoveForward())  moveDir = DirectX::XMVectorAdd(moveDir, forward);
     if (mInput.isMoveBackward()) moveDir = DirectX::XMVectorSubtract(moveDir, forward);
     if (mInput.isMoveRight())    moveDir = DirectX::XMVectorAdd(moveDir, right);
     if (mInput.isMoveLeft())     moveDir = DirectX::XMVectorSubtract(moveDir, right);
 
+    // SetDirection equivalent: build rolling rotation + set velocity
     float moveLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(moveDir));
     if (moveLen > 0.001f) {
-        moveDir = DirectX::XMVectorScale(moveDir, 1.0f / moveLen);
+        DirectX::XMVECTOR tmp = DirectX::XMVectorSet(
+            DirectX::XMVectorGetX(moveDir), 0.0f,
+            DirectX::XMVectorGetZ(moveDir), 0.0f);
+        tmp = DirectX::XMVector3Normalize(tmp);
 
-        float dx = DirectX::XMVectorGetX(moveDir) * mMoveSpeed * dt;
-        float dz = DirectX::XMVectorGetZ(moveDir) * mMoveSpeed * dt;
-        ball.position.x += dx;
-        ball.position.z += dz;
-
-        // Rolling visual in world frame
-        DirectX::XMVECTOR axis = DirectX::XMVector3Cross(
-            DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f), moveDir);
-        float axisLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(axis));
+        // Rolling quaternion: axis = cross(tmp, Up)
+        DirectX::XMVECTOR rollAxis = DirectX::XMVector3Cross(tmp,
+            DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
+        float axisLen = DirectX::XMVectorGetX(DirectX::XMVector3Length(rollAxis));
         if (axisLen > 0.0001f) {
-            axis = DirectX::XMVectorScale(axis, 1.0f / axisLen);
-            float angle = mMoveSpeed * dt / mBallRadius;
-            DirectX::XMVECTOR deltaQ = DirectX::XMQuaternionRotationAxis(axis, angle);
-            mBallOrientation = DirectX::XMQuaternionMultiply(deltaQ, mBallOrientation);
-            mBallOrientation = DirectX::XMQuaternionNormalize(mBallOrientation);
+            rollAxis = DirectX::XMVectorScale(rollAxis, 1.0f / axisLen);
+            DirectX::XMVECTOR q = DirectX::XMQuaternionRotationAxis(rollAxis, -mRotationMaxSpeed);
+
+            // f = angle(savedRot, Identity) / 0.1f — rolling speed limiter
+            DirectX::XMVECTOR s = DirectX::XMLoadFloat4(&mSavedRot);
+            float w = fmaxf(-1.0f, fminf(1.0f, DirectX::XMVectorGetW(s)));
+            float angle = 2.0f * acosf(w);
+            float f = fminf(1.0f, angle / 0.1f);
+            DirectX::XMVECTOR lerped = DirectX::XMQuaternionSlerp(q, DirectX::XMQuaternionIdentity(), f);
+            DirectX::XMVECTOR newSavedRot = DirectX::XMQuaternionMultiply(s, lerped);
+            newSavedRot = DirectX::XMQuaternionNormalize(newSavedRot);
+            DirectX::XMStoreFloat4(&mSavedRot, newSavedRot);
         }
+
+        // Set velocity
+        DirectX::XMStoreFloat3(&mBallVelocity,
+            DirectX::XMVectorScale(tmp, mMoveMaxSpeed));
     }
+
+    // savedRot decays toward Identity (RotateTowards equivalent)
+    {
+        DirectX::XMVECTOR s = DirectX::XMLoadFloat4(&mSavedRot);
+        float w = fmaxf(-1.0f, fminf(1.0f, DirectX::XMVectorGetW(s)));
+        float angle = 2.0f * acosf(w);
+        float step = mRotationDrag * dt;
+        if (angle > step && angle > 0.0001f) {
+            float t = step / angle;
+            s = DirectX::XMQuaternionSlerp(s, DirectX::XMQuaternionIdentity(), t);
+        } else {
+            s = DirectX::XMQuaternionIdentity();
+        }
+        DirectX::XMStoreFloat4(&mSavedRot, s);
+    }
+
+    // Apply savedRot to ball orientation (right-multiply = local space, like reference)
+    mBallOrientation = DirectX::XMQuaternionMultiply(
+        mBallOrientation, DirectX::XMLoadFloat4(&mSavedRot));
+    mBallOrientation = DirectX::XMQuaternionNormalize(mBallOrientation);
+
+    // Apply velocity drag
+    float dragFactor = fmaxf(0.0f, 1.0f - mMoveDrag * dt);
+    mBallVelocity.x *= dragFactor;
+    mBallVelocity.z *= dragFactor;
+
+    // Integrate position
+    ball.position.x += mBallVelocity.x * dt;
+    ball.position.z += mBallVelocity.z * dt;
 
     ball.position.y = mBallRadius;
 }
@@ -377,6 +458,7 @@ void KatamariGameState::checkPickups() {
     if (mBallIndex < 0) return;
     DirectX::XMVECTOR ballPos = DirectX::XMLoadFloat3(&mObjects[mBallIndex].position);
 
+    // Pass 1: ball picks up objects
     for (int i = 0; i < (int)mObjects.size(); ++i) {
         if (i == mBallIndex || mObjects[i].isAttached) continue;
         auto& obj = mObjects[i];
@@ -387,7 +469,7 @@ void KatamariGameState::checkPickups() {
         float objR = obj.boundingRadius * obj.scale * obj.scaleMultiplier;
         float sumRadii = mBallRadius + objR;
 
-        if (dist < sumRadii && objR < mBallRadius * 1.15f) {
+        if (dist < sumRadii && mBallRadius > obj.gameSize) {
             DirectX::XMVECTOR dir = DirectX::XMVector3Normalize(diff);
             if (DirectX::XMVectorGetX(DirectX::XMVector3Length(diff)) < 0.0001f) {
                 dir = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -398,12 +480,12 @@ void KatamariGameState::checkPickups() {
             DirectX::XMStoreFloat3(&obj.attachOffset, localOffset);
             obj.isAttached = true;
             obj.parentIndex = -2;
-            mBallRadius = sqrtf(mBallRadius * mBallRadius + objR * objR);
+            updateBallSize(obj.gameSize);
             log("Picked up " + obj.name);
         }
     }
 
-    // Chain pickups
+    // Pass 2: chain pickups — objects attach to other attached objects
     for (int i = 0; i < (int)mObjects.size(); ++i) {
         if (i == mBallIndex || mObjects[i].isAttached) continue;
         auto& freeObj = mObjects[i];
@@ -418,7 +500,7 @@ void KatamariGameState::checkPickups() {
             float freeR = freeObj.boundingRadius * freeObj.scale * freeObj.scaleMultiplier;
             float attachedR = mObjects[j].boundingRadius * mObjects[j].scale * mObjects[j].scaleMultiplier;
 
-            if (dist < freeR + attachedR && freeR < mBallRadius * 1.15f) {
+            if (dist < freeR + attachedR && mBallRadius > freeObj.gameSize) {
                 DirectX::XMVECTOR dir = DirectX::XMVector3Normalize(diff);
                 if (DirectX::XMVectorGetX(DirectX::XMVector3Length(diff)) < 0.0001f) {
                     dir = DirectX::XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
@@ -429,7 +511,7 @@ void KatamariGameState::checkPickups() {
                 DirectX::XMStoreFloat3(&freeObj.attachOffset, localOffset);
                 freeObj.isAttached = true;
                 freeObj.parentIndex = j;
-                mBallRadius = sqrtf(mBallRadius * mBallRadius + freeR * freeR);
+                updateBallSize(freeObj.gameSize);
                 log("Picked up " + freeObj.name + " (chain)");
                 break;
             }
@@ -473,6 +555,14 @@ void KatamariGameState::render(float deltaTime) {
             DirectX::XMMatrixRotationQuaternion(mBallOrientation) *
             DirectX::XMMatrixTranslation(ball.position.x, ball.position.y, ball.position.z);
         drawTextured(ball.renderObj, world, view, proj, camPos, renderer);
+
+        // Wireframe outline sphere
+        float outlineScale = mBallRadius * 1.06f;
+        DirectX::XMMATRIX outlineWorld =
+            DirectX::XMMatrixScaling(outlineScale, outlineScale, outlineScale) *
+            DirectX::XMMatrixRotationQuaternion(mBallOrientation) *
+            DirectX::XMMatrixTranslation(ball.position.x, ball.position.y, ball.position.z);
+        drawTextured(mOutlineSphere, outlineWorld, view, proj, camPos, renderer);
     }
 
     // Attached + free objects
@@ -531,7 +621,7 @@ void KatamariGameState::render(float deltaTime) {
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Settings")) {
-                ImGui::SliderFloat("Move Speed", &mMoveSpeed, 1.0f, 30.0f, "%.1f");
+                ImGui::SliderFloat("Move Drag", &mMoveDrag, 1.0f, 15.0f, "%.1f");
                 ImGui::SliderFloat("Camera Distance", &mCameraDistance, 5.0f, 40.0f, "%.1f");
                 ImGui::SliderFloat("Camera Height", &mCameraDistance, 5.0f, 40.0f, "%.1f");
                 ImGui::EndMenu();
