@@ -431,6 +431,9 @@ void KatamariAtHomeState::render(float deltaTime) {
                 float maxSpeed = mBall.getMoveMaxSpeed();
                 ImGui::SliderFloat("Move Speed", &maxSpeed, 5.0f, 100.0f, "%.1f");
                 mBall.setMoveMaxSpeed(maxSpeed);
+                float jumpSpeed = mBall.getJumpSpeed();
+                ImGui::SliderFloat("Jump Strength", &jumpSpeed, 5.0f, 100.0f, "%.1f");
+                mBall.setJumpSpeed(jumpSpeed);
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {

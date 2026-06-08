@@ -18,8 +18,10 @@ public:
     const DirectX::XMFLOAT3& getPosition() const { return mPosition; }
     DirectX::XMVECTOR getOrientation() const { return mOrientation; }
     float getMoveMaxSpeed() const { return mMoveMaxSpeed; }
+    float getJumpSpeed() const { return mJumpSpeed; }
 
     void setMoveMaxSpeed(float s) { mMoveMaxSpeed = s; }
+    void setJumpSpeed(float s) { mJumpSpeed = s; }
     void setPosition(const DirectX::XMFLOAT3& pos) { mPosition = pos; }
     void setBaseRadius(float r) { mBaseRadius = r; mRadius = r; }
 
