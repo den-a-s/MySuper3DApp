@@ -58,7 +58,7 @@ private:
     float mMoveDrag = 5.0f;
     float mRotationDrag = 0.14f;
     float mRotationMaxSpeed = 0.1f;
-    float mMoveMaxSpeed = 8.0f;
+    float mMoveMaxSpeed = 20.0f;
 
     float mCameraDistance = 15.0f;
     float mInitialAspect = 1.0f;

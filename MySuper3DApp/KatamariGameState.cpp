@@ -67,7 +67,7 @@ static LoadedMesh createGroundMesh(float size, float uTiles) {
         {{-h, 0.0f,  h}, {0,1,0}, {0, uTiles}},
     };
     mesh.vertices.assign(verts, verts + 4);
-    mesh.indices = {0, 1, 2, 0, 2, 3};
+    mesh.indices = {0, 2, 1, 0, 3, 2};
     return mesh;
 }
 
@@ -116,8 +116,8 @@ void KatamariGameState::init() {
     auto& renderer = mGame.getRenderer();
     auto* device = renderer.mDevice.Get();
 
-    auto groundChecker = createCheckerTexture(device, 256, 32);
-    auto groundMesh = createGroundMesh(40.0f, 16.0f);
+    auto groundChecker = createCheckerTexture(device, 256, 64);
+    auto groundMesh = createGroundMesh(1200.0f, 12.0f);
 
     LoadedMaterial groundMat;
     groundMat.baseColor = {0.8f, 0.8f, 0.8f, 1.0f};
@@ -250,7 +250,7 @@ void KatamariGameState::scatterObjects() {
     if (mBallIndex < 0) return;
     auto& ballPos = mObjects[mBallIndex].position;
 
-    std::uniform_real_distribution<float> dist(-100.0f, 100.0f);
+    std::uniform_real_distribution<float> dist(-550.0f, 550.0f);
 
     for (int i = 0; i < (int)mObjects.size(); ++i) {
         if (i == mBallIndex) continue;
@@ -329,7 +329,7 @@ void KatamariGameState::handleInput(float deltaTime) {
         case WM_MOUSEWHEEL: {
             int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
             auto& cam = mGame.getRenderer().getCamera();
-            cam.zoomOrbit(-delta / 120.0f * 2.0f);
+            cam.zoomOrbit(-delta / 120.0f * 5.0f);
             break;
         }
         case WM_QUIT:
@@ -360,10 +360,10 @@ void KatamariGameState::update(float dt) {
 void KatamariGameState::updateBallSize(float absorbedSize) {
     float tmp = sqrtf(mBallRadius * mBallRadius + absorbedSize * absorbedSize);
     mBallRadius = tmp;
-    mRotationMaxSpeed = 0.1f / (tmp * tmp);
+    mRotationMaxSpeed = 0.15f / (tmp * tmp);
     if (mRotationMaxSpeed < 0.005f)
         mRotationMaxSpeed = 0.005f;
-    mMoveMaxSpeed = 8.0f * sqrtf(tmp);
+    mMoveMaxSpeed = 20.0f * sqrtf(tmp);
     mRotationDrag = 0.1f + 0.06f / sqrtf(tmp);
 }
 
@@ -622,8 +622,8 @@ void KatamariGameState::render(float deltaTime) {
             }
             if (ImGui::BeginMenu("Settings")) {
                 ImGui::SliderFloat("Move Drag", &mMoveDrag, 1.0f, 15.0f, "%.1f");
-                ImGui::SliderFloat("Camera Distance", &mCameraDistance, 5.0f, 40.0f, "%.1f");
-                ImGui::SliderFloat("Camera Height", &mCameraDistance, 5.0f, 40.0f, "%.1f");
+                ImGui::SliderFloat("Camera Distance", &mCameraDistance, 5.0f, 200.0f, "%.1f");
+                ImGui::SliderFloat("Camera Height", &mCameraDistance, 5.0f, 200.0f, "%.1f");
                 ImGui::EndMenu();
             }
             if (ImGui::BeginMenu("Help")) {

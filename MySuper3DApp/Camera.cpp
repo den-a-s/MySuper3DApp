@@ -54,7 +54,7 @@ void Camera::initOrtho(float halfWidth, float halfHeight, float aspect) {
     DirectX::XMVECTOR up = DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
     mView = DirectX::XMMatrixLookAtLH(eye, focus, up);
     mNearZ = 0.1f;
-    mFarZ = 100.0f;
+    mFarZ = 4000.0f;
     mAspect = aspect;
     mProjMode = ProjMode::Ortho;
     recalculateProjection();
@@ -161,7 +161,7 @@ void Camera::rotateOrbit(float dTheta, float dPhi) {
 void Camera::zoomOrbit(float delta) {
     mRadius += delta;
     if (mRadius < 2.0f) mRadius = 2.0f;
-    if (mRadius > 80.0f) mRadius = 80.0f;
+    if (mRadius > 200.0f) mRadius = 200.0f;
 }
 
 void Camera::zoomOrtho(float delta) {

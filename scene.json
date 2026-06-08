@@ -18,6 +18,57 @@
             "katSize": 3.0
         },
         {
+            "multiplier": 400.0,
+            "name": "Pen",
+            "objPath": "../Objects/Geometry/pen.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.8,
+            "katSize": 2.5
+        },
+        {
+            "multiplier": 400.0,
+            "name": "Pen",
+            "objPath": "../Objects/Geometry/pen.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.2,
+            "katSize": 3.5
+        },
+        {
+            "multiplier": 400.0,
+            "name": "Pen",
+            "objPath": "../Objects/Geometry/pen.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.6,
+            "katSize": 2.0
+        },
+        {
             "multiplier": 0.5299999713897705,
             "name": "Desk Chair",
             "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
@@ -33,6 +84,40 @@
             ],
             "scale": 0.800000011920929,
             "katSize": 1.2
+        },
+        {
+            "multiplier": 0.5299999713897705,
+            "name": "Desk Chair",
+            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.0,
+            "katSize": 1.5
+        },
+        {
+            "multiplier": 0.5299999713897705,
+            "name": "Desk Chair",
+            "objPath": "../Objects/Geometry/Reis Desk Chair.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.6,
+            "katSize": 0.9
         },
         {
             "multiplier": 0.5299999713897705,
@@ -84,6 +169,159 @@
             ],
             "scale": 1.0,
             "katSize": 0.8
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.2,
+            "katSize": 1.0
+        },
+        {
+            "multiplier": 0.23000000417232513,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.8,
+            "katSize": 0.6
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.5,
+            "katSize": 1.2
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.7,
+            "katSize": 0.5
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.5,
+            "katSize": 0.4
+        },
+        {
+            "multiplier": 0.3400000035762787,
+            "name": "End Table",
+            "objPath": "../Objects/Geometry/end_table.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.3,
+            "katSize": 1.1
+        },
+        {
+            "multiplier": 0.5,
+            "name": "Hedgehog",
+            "objPath": "../Objects/Geometry/Decor_ Hedgehog.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.8,
+            "katSize": 1.0
+        },
+        {
+            "multiplier": 0.5,
+            "name": "Hedgehog",
+            "objPath": "../Objects/Geometry/Decor_ Hedgehog.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 1.2,
+            "katSize": 1.5
+        },
+        {
+            "multiplier": 0.5,
+            "name": "Hedgehog",
+            "objPath": "../Objects/Geometry/Decor_ Hedgehog.obj",
+            "position": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "rotation": [
+                0.0,
+                0.0,
+                0.0
+            ],
+            "scale": 0.5,
+            "katSize": 0.7
         }
     ]
 }
