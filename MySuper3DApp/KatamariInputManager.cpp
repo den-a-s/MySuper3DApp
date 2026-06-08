@@ -1,5 +1,44 @@
 #include "KatamariInputManager.h"
 
+void KatamariInputManager::pumpMessages() {
+    mMouseDeltaX = 0;
+    mMouseDeltaY = 0;
+    mScrollDelta = 0;
+
+    MSG msg = {};
+    while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE)) {
+        switch (msg.message) {
+        case WM_MOUSEMOVE: {
+            int x = static_cast<int>(LOWORD(msg.lParam));
+            int y = static_cast<int>(HIWORD(msg.lParam));
+            if (mMouseDown) {
+                mMouseDeltaX += static_cast<float>(x - mMouseX) * 0.005f;
+                mMouseDeltaY += static_cast<float>(mMouseY - y) * 0.005f;
+            }
+            mMouseX = x;
+            mMouseY = y;
+            break;
+        }
+        case WM_LBUTTONDOWN:
+            mMouseDown = true;
+            mMouseX = static_cast<int>(LOWORD(msg.lParam));
+            mMouseY = static_cast<int>(HIWORD(msg.lParam));
+            break;
+        case WM_LBUTTONUP:
+            mMouseDown = false;
+            break;
+        case WM_MOUSEWHEEL:
+            mScrollDelta += -GET_WHEEL_DELTA_WPARAM(msg.wParam) / 120.0f * 5.0f;
+            break;
+        case WM_QUIT:
+            mExitRequested = true;
+            break;
+        }
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
 bool KatamariInputManager::isMoveForward() const {
     return GetAsyncKeyState('W') & 0x8000;
 }

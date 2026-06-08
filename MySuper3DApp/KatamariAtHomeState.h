@@ -1,6 +1,7 @@
 #pragma once
 #include "GameState.h"
 #include "KatamariInputManager.h"
+#include "KatamariBall.h"
 #include "TexturedRenderObj.h"
 #include <vector>
 #include <string>
@@ -36,29 +37,16 @@ public:
 private:
     void loadScene();
     void scatterObjects();
-    DirectX::XMVECTOR computeObjectWorldPos(int index, DirectX::XMVECTOR ballPos) const;
-    void updateBallSize(float absorbedSize);
-    void updateBall(float dt);
-    void checkPickups();
     void log(const std::string& msg);
 
     Game& mGame;
     KatamariInputManager mInput;
+    KatamariBall mBall;
 
     TexturedRenderObj mGround;
     std::vector<KatamariGameObject> mObjects;
 
     int mBallIndex = -1;
-    float mBallRadius = 1.0f;
-    float mBallBaseRadius = 1.0f;
-    DirectX::XMVECTOR mBallOrientation;
-
-    DirectX::XMFLOAT4 mSavedRot;
-    DirectX::XMFLOAT3 mBallVelocity;
-    float mMoveDrag = 5.0f;
-    float mRotationDrag = 0.14f;
-    float mRotationMaxSpeed = 0.1f;
-    float mMoveMaxSpeed = 20.0f;
 
     float mCameraDistance = 15.0f;
     float mInitialAspect = 1.0f;
@@ -66,9 +54,6 @@ private:
     std::string mSceneStatus;
     std::deque<std::string> mLog;
     std::mt19937 mRng;
-
-    bool mMousePressed = false;
-    int mMouseX = 0, mMouseY = 0;
 
     TexturedRenderObj mOutlineSphere;
     Microsoft::WRL::ComPtr<ID3D11RasterizerState> mOutlineRasterizerState;

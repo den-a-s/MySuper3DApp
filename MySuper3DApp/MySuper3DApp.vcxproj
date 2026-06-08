@@ -154,6 +154,8 @@
     <ClCompile Include="SquareRenderObj.cpp" />
     <ClCompile Include="SceneState.cpp" />
     <ClCompile Include="KatamariInputManager.cpp" />
+    <ClCompile Include="KatamariBall.cpp" />
+    <ClCompile Include="KatamariCollisionSystem.cpp" />
     <ClCompile Include="KatamariAtHomeState.cpp" />
     <ClCompile Include="ObjLoader.cpp" />
     <ClCompile Include="TexturedRenderObj.cpp" />
@@ -175,6 +177,8 @@
     <ClInclude Include="SquareRenderObj.h" />
     <ClInclude Include="SceneState.h" />
     <ClInclude Include="KatamariInputManager.h" />
+    <ClInclude Include="KatamariBall.h" />
+    <ClInclude Include="KatamariCollisionSystem.h" />
     <ClInclude Include="KatamariAtHomeState.h" />
     <ClInclude Include="ObjLoader.h" />
     <ClInclude Include="TexturedRenderObj.h" />
