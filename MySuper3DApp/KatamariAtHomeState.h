@@ -21,6 +21,7 @@ struct KatamariGameObject {
     float boundingRadius = 0.0f;
     bool isAttached = false;
     DirectX::XMFLOAT3 attachOffset = {0, 0, 0};
+    DirectX::XMFLOAT4 attachRotation = {0, 0, 0, 1};
     int parentIndex = -1;
     bool isBall = false;
 };

@@ -29,7 +29,7 @@ void KatamariBall::update(float dt, const KatamariInputManager& input, const Cam
 
     float moveLen = XMVectorGetX(XMVector3Length(moveDir));
     if (moveLen > 0.001f) {
-        setDirection(moveDir);
+        setDirection(moveDir, dt);
     }
 
     {
@@ -61,9 +61,9 @@ void KatamariBall::update(float dt, const KatamariInputManager& input, const Cam
 void KatamariBall::absorb(float objectGameSize) {
     float tmp = sqrtf(mRadius * mRadius + objectGameSize * objectGameSize);
     mRadius = tmp;
-    mRotationMaxSpeed = 0.15f / (tmp * tmp);
-    if (mRotationMaxSpeed < 0.005f)
-        mRotationMaxSpeed = 0.005f;
+    mRotationMaxSpeed = 9.0f / (tmp * tmp);
+    if (mRotationMaxSpeed < 0.3f)
+        mRotationMaxSpeed = 0.3f;
     mMoveMaxSpeed = 20.0f * sqrtf(tmp);
     mRotationDrag = 0.1f + 0.06f / sqrtf(tmp);
 }
@@ -74,11 +74,11 @@ void KatamariBall::reset() {
     mVelocity = {0, 0, 0};
     mMoveDrag = 5.0f;
     mRotationDrag = 0.14f;
-    mRotationMaxSpeed = 0.1f;
+    mRotationMaxSpeed = 6.0f;
     mMoveMaxSpeed = 20.0f;
 }
 
-void KatamariBall::setDirection(const XMVECTOR& dir) {
+void KatamariBall::setDirection(const XMVECTOR& dir, float dt) {
     XMVECTOR tmp = XMVectorSet(XMVectorGetX(dir), 0.0f, XMVectorGetZ(dir), 0.0f);
     tmp = XMVector3Normalize(tmp);
 
@@ -86,7 +86,7 @@ void KatamariBall::setDirection(const XMVECTOR& dir) {
     float axisLen = XMVectorGetX(XMVector3Length(rollAxis));
     if (axisLen > 0.0001f) {
         rollAxis = XMVectorScale(rollAxis, 1.0f / axisLen);
-        XMVECTOR q = XMQuaternionRotationAxis(rollAxis, -mRotationMaxSpeed);
+        XMVECTOR q = XMQuaternionRotationAxis(rollAxis, -mRotationMaxSpeed * dt);
 
         XMVECTOR s = XMLoadFloat4(&mSavedRot);
         float w = fmaxf(-1.0f, fminf(1.0f, XMVectorGetW(s)));

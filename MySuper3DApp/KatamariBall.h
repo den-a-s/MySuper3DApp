@@ -24,7 +24,7 @@ public:
     void setBaseRadius(float r) { mBaseRadius = r; mRadius = r; }
 
 private:
-    void setDirection(const DirectX::XMVECTOR& dir);
+    void setDirection(const DirectX::XMVECTOR& dir, float dt);
 
     DirectX::XMFLOAT3 mPosition;
     float mRadius = 1.0f;
@@ -34,6 +34,6 @@ private:
     DirectX::XMFLOAT3 mVelocity;
     float mMoveDrag = 5.0f;
     float mRotationDrag = 0.14f;
-    float mRotationMaxSpeed = 0.1f;
+    float mRotationMaxSpeed = 6.0f;
     float mMoveMaxSpeed = 20.0f;
 };

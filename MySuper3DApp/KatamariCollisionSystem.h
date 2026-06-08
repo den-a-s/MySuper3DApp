@@ -14,6 +14,11 @@ DirectX::XMVECTOR computeObjectWorldPos(
     DirectX::XMVECTOR ballPos,
     DirectX::XMVECTOR ballOrientation);
 
+DirectX::XMVECTOR computeObjectWorldRot(
+    const std::vector<KatamariGameObject>& objects,
+    int index, int ballIndex,
+    DirectX::XMVECTOR ballOrientation);
+
 void katamariCheckPickups(
     std::vector<KatamariGameObject>& objects,
     int ballIndex,

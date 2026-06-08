@@ -27,6 +27,26 @@ XMVECTOR computeObjectWorldPos(
     return ballPos;
 }
 
+XMVECTOR computeObjectWorldRot(
+    const std::vector<KatamariGameObject>& objects,
+    int index, int ballIndex,
+    XMVECTOR ballOrientation)
+{
+    if (index == ballIndex)
+        return ballOrientation;
+
+    auto& obj = objects[index];
+    XMVECTOR localRot = XMLoadFloat4(&obj.attachRotation);
+
+    if (obj.parentIndex == -2) {
+        return XMQuaternionMultiply(localRot, ballOrientation);
+    } else if (obj.parentIndex >= 0) {
+        XMVECTOR parentRot = computeObjectWorldRot(objects, obj.parentIndex, ballIndex, ballOrientation);
+        return XMQuaternionMultiply(localRot, parentRot);
+    }
+    return ballOrientation;
+}
+
 void katamariCheckPickups(
     std::vector<KatamariGameObject>& objects,
     int ballIndex,
@@ -53,10 +73,17 @@ void katamariCheckPickups(
             if (XMVectorGetX(XMVector3Length(diff)) < 0.0001f) {
                 dir = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
             }
-            XMVECTOR worldOffset = XMVectorScale(dir, ballRadius);
+            XMVECTOR worldOffset = XMVectorScale(dir, ballRadius + objR);
             XMVECTOR invOrient = XMQuaternionInverse(ballOrientation);
             XMVECTOR localOffset = XMVector3Rotate(worldOffset, invOrient);
             XMStoreFloat3(&obj.attachOffset, localOffset);
+            {
+                XMVECTOR objWorldRot = XMQuaternionRotationRollPitchYaw(
+                    obj.rotation.x, obj.rotation.y, obj.rotation.z);
+                XMVECTOR localRot = XMQuaternionMultiply(objWorldRot, invOrient);
+                localRot = XMQuaternionNormalize(localRot);
+                XMStoreFloat4(&obj.attachRotation, localRot);
+            }
             obj.isAttached = true;
             obj.parentIndex = -2;
             ball.absorb(obj.gameSize);
@@ -83,10 +110,19 @@ void katamariCheckPickups(
                 if (XMVectorGetX(XMVector3Length(diff)) < 0.0001f) {
                     dir = XMVectorSet(0.0f, 0.0f, 1.0f, 0.0f);
                 }
-                XMVECTOR worldOffset = XMVectorScale(dir, attachedR);
+                XMVECTOR worldOffset = XMVectorScale(dir, attachedR + freeR);
                 XMVECTOR invOrient = XMQuaternionInverse(ballOrientation);
                 XMVECTOR localOffset = XMVector3Rotate(worldOffset, invOrient);
                 XMStoreFloat3(&freeObj.attachOffset, localOffset);
+                {
+                    XMVECTOR objWorldRot = XMQuaternionRotationRollPitchYaw(
+                        freeObj.rotation.x, freeObj.rotation.y, freeObj.rotation.z);
+                    XMVECTOR parentWorldRot = computeObjectWorldRot(objects, j, ballIndex, ballOrientation);
+                    XMVECTOR invParentRot = XMQuaternionInverse(parentWorldRot);
+                    XMVECTOR localRot = XMQuaternionMultiply(objWorldRot, invParentRot);
+                    localRot = XMQuaternionNormalize(localRot);
+                    XMStoreFloat4(&freeObj.attachRotation, localRot);
+                }
                 freeObj.isAttached = true;
                 freeObj.parentIndex = j;
                 ball.absorb(freeObj.gameSize);

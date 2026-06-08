@@ -113,7 +113,7 @@ KatamariAtHomeState::~KatamariAtHomeState() {
 }
 
 void KatamariAtHomeState::init() {
-    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    std::ignore = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
 
     auto& renderer = mGame.getRenderer();
     auto* device = renderer.mDevice.Get();
@@ -384,9 +384,10 @@ void KatamariAtHomeState::render(float deltaTime) {
             DirectX::XMVECTOR wpos = computeObjectWorldPos(mObjects, (int)i, mBallIndex, ballPos, ballOrientation);
             DirectX::XMFLOAT3 wp;
             DirectX::XMStoreFloat3(&wp, wpos);
+            DirectX::XMVECTOR wrot = computeObjectWorldRot(mObjects, (int)i, mBallIndex, ballOrientation);
             world =
                 DirectX::XMMatrixScaling(s, s, s) *
-                DirectX::XMMatrixRotationQuaternion(ballOrientation) *
+                DirectX::XMMatrixRotationQuaternion(wrot) *
                 DirectX::XMMatrixTranslation(wp.x, wp.y, wp.z);
         } else {
             world =
